@@ -234,19 +234,18 @@
             }
         }
         .wmsg {
-            position: fixed;
             display: none;
-            top: 0;
-            left: 0;
-            width: 100%;
-            text-align: center;
+            width: fit-content;
+            margin: 0 auto;
+            max-height: 3rem;
+            font-size: 1.25rem;
             user-select: auto;
-            z-index: 3;
+            padding: 0.5rem;
         }
-        .players .guess.submited:not(.checked) ~ .wmsg.waiting {
+        .players .guess.submited:not(.checked) ~ .msg .wmsg.waiting {
             display: block;
         }
-        .lie-brarians .guess.submited:not(.checked) ~ .wmsg.lie {
+        .lie-brarians .guess.submited:not(.checked) ~ .msg .wmsg.lie {
             display: block;
         }
         .answer.submited ~ .keyboard {
@@ -259,7 +258,7 @@
             word-break: break-all;
             max-width: 380px;
             margin: 1rem auto;
-            user-select: all;
+            user-select: auto;
         }
         .answer.submited ~ .lie-brarians-panel {
             display: block;
@@ -271,6 +270,8 @@
             left: 0;
             background-color: silver;
             width: 100%;
+            z-index: 3;
+            user-select: none;
         }
         .msg {
             animation: fade-in 0.5s both, fade-out 0.5s 2s both;
@@ -278,7 +279,7 @@
             margin: 0 auto;
             max-height: 3rem;
             font-size: 1.25rem;
-            user-select: all;
+            padding: 0.5rem;
         }
         @keyframes fade-out {
             to {
@@ -407,9 +408,12 @@
                     <div class="code"></div>
                 </div>
             </div>
-            <div class="wmsg waiting">等待對手</div>
-            <div class="wmsg lie">
-                設定一個謊言 <button onclick="test()" style="font-size: 1rem">送出</button>
+            
+            <div class="msgs">
+                <div class="wmsg waiting">等待對手</div>
+                <div class="wmsg lie">
+                    設定一個謊言 <button onclick="test()" style="font-size: 1rem">送出</button>
+                </div>
             </div>
         </div>
         <div class="keyboard">
@@ -469,8 +473,6 @@
             <div class="link"></div>
         </div>
     </main>
-    <div class="msgs"></div>
-
 <script>
     function msg(msg) {
         console.log(msg);
