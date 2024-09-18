@@ -9,16 +9,31 @@ var tOFCount = 0;
 document.querySelector('.keyboard').addEventListener('click', e => {
     if (e.target.classList.contains('key')) {
         const key = e.target;
-        if (key.innerText != '' && guessCodes.length < 5) {
-            guessCodes.push(key.innerText);
-            refresh();
-        }
-        if (key.classList.contains('back') && guessCodes.length > 0) {
-            guessCodes.splice(-1);
-            refresh();
-        }
-        if (key.classList.contains('enter')) {
-            submit();
+        const editKey = document.getElementById('edit_key');
+        if (editKey.checked) {
+            if (key.classList.contains('x')) {
+                key.classList.remove('x');
+                key.classList.add('tilde');
+            } else if (key.classList.contains('tilde')) {
+                key.classList.remove('tilde');
+                key.classList.add('check');
+            } else if (key.classList.contains('check')) {
+                key.classList.remove('check');
+            } else {
+                key.classList.add('x');
+            }
+        } else {
+            if (key.innerText != '' && guessCodes.length < 5) {
+                guessCodes.push(key.innerText);
+                refresh();
+            }
+            if (key.classList.contains('back') && guessCodes.length > 0) {
+                guessCodes.splice(-1);
+                refresh();
+            }
+            if (key.classList.contains('enter')) {
+                submit();
+            }
         }
     }
 });
@@ -35,12 +50,12 @@ document.querySelector('.guesses').addEventListener('click', e => {
             }
             if (lieCode.classList.contains('x')) {
                 lieCode.classList.remove('x');
-                lieCode.classList.add('check');
-            } else if (lieCode.classList.contains('check')) {
-                lieCode.classList.remove('check');
                 lieCode.classList.add('tilde');
             } else if (lieCode.classList.contains('tilde')) {
                 lieCode.classList.remove('tilde');
+                lieCode.classList.add('check');
+            } else if (lieCode.classList.contains('check')) {
+                lieCode.classList.remove('check');
                 lieCode.classList.add('x');
             }
         } else {
@@ -104,7 +119,10 @@ function checkAnswer() {
         b.classList.add(result);
     });
 
-    if (checkCount == 5) send('答對了');
+    if (checkCount == 5) {
+        send('答對了');
+        alert('對手答對了');
+    }
 
     const codeArea = document.querySelector('.guess:not(.submited)');
     const words = guessCodes.reduce((obj, key) => obj && obj[key], dict);

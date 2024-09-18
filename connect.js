@@ -3,13 +3,7 @@ var remotePeerIds = [];
 
 var isLieBrarians = location.search == '';
 
-const storePeerId = localStorage.getItem('peerId');
-
-if (storePeerId) {
-    peer = new Peer(storePeerId);
-} else {
-    peer = new Peer();
-}
+peer = new Peer();
 
 peer.on('disconnected', () => {
     msg('連線中斷，正在恢復連線')
@@ -18,7 +12,6 @@ peer.on('disconnected', () => {
 
 peer.on('open', id => {
     if (isLieBrarians) document.querySelector('.link').innerText = location.href + '?' + id;
-    localStorage.setItem('peerId', id);
     msg('已連線到網路')
 });
 
@@ -32,12 +25,15 @@ peer.on('connection', conn => {
                 guessCodes = data;
                 checkAnswer();
             } else if (typeof data == 'number') {
-                const checkedGuess = document.querySelectorAll('.submited.checked');
-                const lastGuess = checkedGuess[checkedGuess.length - 1];
-                const codes = lastGuess.querySelectorAll('.code');
-                const tOF = results[data] == liedResults[data]
-                codes[data].classList.add(tOF ? 'truth' : 'fiction');
-                send(tOF ? 1 : 0);
+                if (tOFCount < 3) {
+                    const checkedGuess = document.querySelectorAll('.submited.checked');
+                    const lastGuess = checkedGuess[checkedGuess.length - 1];
+                    const codes = lastGuess.querySelectorAll('.code');
+                    const tOF = results[data] == liedResults[data]
+                    codes[data].classList.add(tOF ? 'truth' : 'fiction');
+                    send(tOF ? 1 : 0);
+                    tOFCount++;
+                }
             } else {
                 console.log(data)
             }
@@ -52,6 +48,35 @@ peer.on('connection', conn => {
                 truthOrFiction.classList.add(data ? 'truth' : 'fiction');
                 truthOrFiction.parentNode.parentNode.classList.add('truth-or-fiction');
                 tOFCount++;
+                const keys = document.querySelectorAll('.key');
+                if (data) {
+                    console.log('d1')
+                    keys.forEach(key => {
+                        if (key.innerText == truthOrFiction.innerText) {
+                            key.classList.remove('check', 'tilde', 'x');
+                            if (truthOrFiction.classList.contains('check')) key.classList.add('check');
+                            if (truthOrFiction.classList.contains('tilde')) key.classList.add('tilde');
+                            if (truthOrFiction.classList.contains('x')) key.classList.add('x');
+                        }
+                    });
+                } else {
+                    console.log('d2')
+                    const guesses = document.querySelectorAll('.guess.submited.checked');
+                    const lastGuess = guesses[guesses.length - 1];
+                    const codes = lastGuess.querySelectorAll('.code');
+                    codes.forEach(code => {
+                        if (code.innerText != truthOrFiction.innerText) {
+                            keys.forEach(key => {
+                                if (key.innerText == code.innerText) {
+                                    key.classList.remove('check', 'tilde', 'x');
+                                    if (code.classList.contains('check')) key.classList.add('check');
+                                    if (code.classList.contains('tilde')) key.classList.add('tilde');
+                                    if (code.classList.contains('x')) key.classList.add('x');
+                                }
+                            });
+                        }
+                    })
+                }
             } else {
                 alert(data);
             }

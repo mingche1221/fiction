@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@700" rel="stylesheet">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --color-black: #464646;
+        }
+        body {
+            font-family: "LXGW WenKai Mono TC", monospace;
+            user-select: none;
+        }
+        main {
+            position: relative;
+            padding-top: 3rem;
+            padding-bottom: 100vh;
+        }
+        .answer {
+            z-index: 2;
+        }
+        .answer,
+        .guess {
+            background-color: #95d4d0;
+            width: fit-content;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            margin: 1rem auto;
+            position: relative;
+        }
+        .answer.submited {
+            background-color: #90cbec;
+            border-bottom: 2px solid #369dde;
+            position: sticky;
+            top: 3rem;
+        }
+        .answer:not(.submited),
+        .guess:not(.submited) {
+            display: none;
+        }
+        .lie-brarians .answer:not(.submited),
+        .players .guess:not(.submited):first-child,
+        .players .guess.submited.checked + .guess:not(.submited) {
+            --transform: translateX(50%);
+            display: block;
+            position: fixed;
+            right: 50%;
+            transform: var(--transform);
+            bottom: 10rem;
+            z-index: 1;
+            background-color: transparent;
+            box-shadow: none;
+        }
+        .guess.wrong {
+            animation: wrong 0.3s ;
+            box-shadow: 0 3px 6px rgba(255,0,0,0.16), 0 3px 6px rgba(255,0,0,0.23);
+        }
+        .guess.wrong .code:empty {
+            border-color: red;
+        }
+        .guess:nth-child(n + 6) {
+            background-color: #e0d3c1;
+        }
+        .codes {
+            position: relative;
+            display: flex;
+        }
+        .code {
+            position: relative;
+            font-size: 2.2rem;
+            font-weight: 700;
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--color-black);
+            border-radius: 3px;
+            margin: 0.5rem;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            box-shadow: inset 0 0 0 2px white, inset 0 0 0 3px var(--color-black);
+        }
+        .truth::after {
+            content: 'Truth';
+            font-size: small;
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+        }
+        .fiction::after {
+            content: 'Fiction';
+            font-size: small;
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background-color: var(--color-black);
+        }
+        .result {
+            --icon-size: 50%;
+            position: absolute;
+            bottom: -0.25rem;
+            right: -0.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+        }
+        .result.check {
+            background:
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%2390cbec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>') center / var(--icon-size) no-repeat,
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>') center / var(--icon-size) no-repeat #369dde;
+                box-shadow: inset 0 0 0 1px var(--color-black), inset 0 0 0 2px #369dde, inset 0 0 0 3px var(--color-black), inset 0 0 0 6px #90cbec, inset 0 0 0 8px var(--color-black);
+        }
+        .result.x {
+            background:
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23c1c1c1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>') center / var(--icon-size) no-repeat,
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>') center / var(--icon-size) no-repeat #959595;
+                box-shadow: inset 0 0 0 1px var(--color-black), inset 0 0 0 2px #959595, inset 0 0 0 3px var(--color-black), inset 0 0 0 6px #c1c1c1, inset 0 0 0 8px var(--color-black);
+        }
+        .result.tilde {
+            background:
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f6d76e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c0 -1.657 1.592 -3 3.556 -3c1.963 0 3.11 1.5 4.444 3c1.333 1.5 2.48 3 4.444 3s3.556 -1.343 3.556 -3" /></svg>') center / var(--icon-size) no-repeat,
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c0 -1.657 1.592 -3 3.556 -3c1.963 0 3.11 1.5 4.444 3c1.333 1.5 2.48 3 4.444 3s3.556 -1.343 3.556 -3" /></svg>') center / var(--icon-size) no-repeat #ffba2c;
+                box-shadow: inset 0 0 0 1px var(--color-black), inset 0 0 0 2px #ffba2c, inset 0 0 0 3px var(--color-black), inset 0 0 0 6px #f6d76e, inset 0 0 0 8px var(--color-black);
+        }
+        .code.check {
+            background-color: #90cbec;
+        }
+        .code.x {
+            background-color: #c1c1c1;
+        }
+        .code.tilde {
+            background-color: #f6d76e;
+        }
+        .words {
+            position: absolute;
+            bottom: -0.75em;
+            right: 0.5em;
+            padding: 0.25em 0.5em;
+            background-color: #f6d76e;
+            font-size: smaller;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .words:empty {
+            display: none;
+        }
+        .keyboard {
+
+            --scale: 1.9;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 4.5rem 0.25rem 0.5rem;
+            position: fixed;
+            bottom: 0.5rem;
+            right: 50%;
+            transform: translateX(50%);
+            background-color: white;
+            border: 1px solid silver;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+        .key-row {
+            display: flex;
+        }
+
+        .key {
+            display: flex;
+            flex-shrink: 0;
+            justify-content: center;
+            align-items: center;
+            width: calc(1em * var(--scale));
+            height: calc(1.2em * var(--scale));
+            margin: 0.1rem;
+            border: 2px solid var(--color-black);
+            box-shadow: inset 0 0 0 1px white, inset 0 0 0 2px var(--color-black);
+            cursor: pointer;
+        }
+        .key.back {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-narrow-left"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 12l14 0" /><path d="M5 12l4 4" /><path d="M5 12l4 -4" /></svg>') center / 80% no-repeat;
+        }
+        .key.enter {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-corner-down-left"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6v6a3 3 0 0 1 -3 3h-10l4 -4m0 8l-4 -4" /></svg>') center / 80% no-repeat;
+        }
+        .key.x {
+            background-color: #c1c1c1;
+        }
+        .key.tilde {
+            background-color: #f6d76e;
+        }
+        .key.check {
+            background-color: #90cbec;
+        }
+        .key.placeholder {
+            border: 0;
+            box-shadow: none;
+        }
+        @keyframes wrong {
+            0% {
+                transform: var(--transform, translateX(0));
+            }
+            12.5% {
+                transform: var(--transform, translateX(0)) translateX(-0.5rem);
+            }
+            37.5% {
+                transform: var(--transform, translateX(0)) translateX(0.5rem);
+            }
+            62.5% {
+                transform: var(--transform, translateX(0)) translateX(-0.5rem);
+            }
+            87.5% {
+                transform: var(--transform, translateX(0)) translateX(0.5rem);
+            }
+            100% {
+                transform: var(--transform, translateX(0));
+            }
+        }
+        .wmsg {
+            position: fixed;
+            display: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            user-select: auto;
+            z-index: 3;
+        }
+        .players .guess.submited:not(.checked) ~ .wmsg.waiting {
+            display: block;
+        }
+        .lie-brarians .guess.submited:not(.checked) ~ .wmsg.lie {
+            display: block;
+        }
+        .answer.submited ~ .keyboard {
+            display: none;
+        }
+        .lie-brarians-panel {
+            display: none;
+        }
+        .link {
+            word-break: break-all;
+            max-width: 380px;
+            margin: 1rem auto;
+            user-select: all;
+        }
+        .answer.submited ~ .lie-brarians-panel {
+            display: block;
+        }
+        .msgs {
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: silver;
+            width: 100%;
+            pointer-events: none;
+            z-index: 9;
+        }
+        .msg {
+            animation: fade-in 0.5s both, fade-out 0.5s 2s both;
+            width: fit-content;
+            margin: 0 auto;
+            max-height: 3rem;
+            font-size: 1.25rem;
+            user-select: all;
+        }
+        @keyframes fade-out {
+            to {
+                max-height: 0;
+                opacity: 0;
+            }
+        }
+        @keyframes fade-in {
+            from {
+                max-height: 0;
+                opacity: 0;
+            }
+        }
+        .lie-brarians #edit_key {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="answer">
+            <div class="words">輸入題目</div>
+            <div class="codes">
+                <div class="code"></div>
+                <div class="code"></div>
+                <div class="code"></div>
+                <div class="code"></div>
+                <div class="code"></div>
+            </div>
+        </div>
+        <div class="guesses">
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="guess">
+                <div class="words"></div>
+                <div class="codes">
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                    <div class="code"></div>
+                </div>
+            </div>
+            <div class="wmsg waiting">等待對手</div>
+            <div class="wmsg lie">
+                設定一個謊言 <button onclick="test()" style="font-size: 1rem">送出</button>
+            </div>
+        </div>
+        <div class="keyboard">
+            <div class="key-row">
+                <div class="key">ㄅ</div>
+                <div class="key">ㄉ</div>
+                <div class="key placeholder"><input type="checkbox" id="edit_key"></div>
+                <div class="key placeholder"></div>
+                <div class="key">ㄓ</div>
+                <div class="key placeholder"></div>
+                <div class="key placeholder"></div>
+                <div class="key">ㄚ</div>
+                <div class="key">ㄞ</div>
+                <div class="key">ㄢ</div>
+                <div class="key back"></div>
+            </div>
+            <div class="key-row">
+                <div class="key">ㄆ</div>
+                <div class="key">ㄊ</div>
+                <div class="key">ㄍ</div>
+                <div class="key">ㄐ</div>
+                <div class="key">ㄔ</div>
+                <div class="key">ㄗ</div>
+                <div class="key">ㄧ</div>
+                <div class="key">ㄛ</div>
+                <div class="key">ㄟ</div>
+                <div class="key">ㄣ</div>
+                <div class="key">ㄦ</div>
+            </div>
+            <div class="key-row">
+                <div class="key">ㄇ</div>
+                <div class="key">ㄋ</div>
+                <div class="key">ㄎ</div>
+                <div class="key">ㄑ</div>
+                <div class="key">ㄕ</div>
+                <div class="key">ㄘ</div>
+                <div class="key">ㄨ</div>
+                <div class="key">ㄜ</div>
+                <div class="key">ㄠ</div>
+                <div class="key">ㄤ</div>
+            </div>
+            <div class="key-row">
+                <div class="key">ㄈ</div>
+                <div class="key">ㄌ</div>
+                <div class="key">ㄏ</div>
+                <div class="key">ㄒ</div>
+                <div class="key">ㄖ</div>
+                <div class="key">ㄙ</div>
+                <div class="key">ㄩ</div>
+                <div class="key">ㄝ</div>
+                <div class="key">ㄡ</div>
+                <div class="key">ㄥ</div>
+                <div class="key enter"></div>
+            </div>
+        </div>
+        <div class="lie-brarians-panel">
+            <div class="link"></div>
+        </div>
+    </main>
+    <div class="msgs"></div>
+
+<script>
+    function msg(msg) {
+        console.log(msg);
+        const div = document.createElement('div');
+        div.textContent = msg;
+        div.classList.add('msg');
+        document.querySelector('.msgs').appendChild(div)
+    }
+</script>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script src="dict_5_code.js"></script>
+<script src="connect.js?v=10"></script>
+<script src="state.js?v=5"></script>
+<script src="controller.js"></script>
+
+</body>
+</html>
