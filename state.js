@@ -119,15 +119,17 @@ function checkAnswer() {
         b.classList.add(result);
     });
 
-    if (checkCount == 5) {
-        send('答對了');
-        alert('對手答對了');
-    }
-
     const codeArea = document.querySelector('.guess:not(.submited)');
     const words = guessCodes.reduce((obj, key) => obj && obj[key], dict);
     codeArea.querySelector('.words').innerText = words.join(', ');
     codeArea.classList.add('submited');
+
+    if (checkCount == 5) {
+        codeArea.classList.add('checked');
+        send('答對了');
+        msg('對手答對了');
+        peer.close();
+    }
 }
 function test() {
     const guess = document.querySelector('.guess.submited:not(.checked)');
