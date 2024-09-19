@@ -1,9 +1,8 @@
-var peer;
+var peer = new Peer();
+
 var remotePeerIds = [];
 
 var isLieBrarians = location.search == '';
-
-peer = new Peer();
 
 peer.on('disconnected', () => {
     msg('連線中斷，正在恢復連線')
@@ -20,7 +19,7 @@ peer.on('error', err => msg('peer error: ' + err));
 peer.on('connection', conn => {
     conn.on('data', data => {
         if (isLieBrarians) {
-            remotePeerIds[0] = conn.peer;
+            if (remotePeerIds.indexOf(conn.peer) === -1) remotePeerIds.push(conn.peer);
             if (Array.isArray(data)) {
                 guessCodes = data;
                 checkAnswer();
@@ -50,7 +49,6 @@ peer.on('connection', conn => {
                 tOFCount++;
                 const keys = document.querySelectorAll('.key');
                 if (data) {
-                    console.log('d1')
                     keys.forEach(key => {
                         if (key.innerText == truthOrFiction.innerText) {
                             key.classList.remove('check', 'tilde', 'x');
@@ -60,7 +58,6 @@ peer.on('connection', conn => {
                         }
                     });
                 } else {
-                    console.log('d2')
                     const guesses = document.querySelectorAll('.guess.submited.checked');
                     const lastGuess = guesses[guesses.length - 1];
                     const codes = lastGuess.querySelectorAll('.code');
@@ -100,9 +97,11 @@ function send(data, msg = null, callBack = null) {
         div.classList.add('msg');
         document.querySelector('.msgs').appendChild(div);
     }
-    conn = peer.connect(remotePeerIds[0]);
-    conn.on('open', () => {
-        conn.send(data);
-        if (callBack) callBack();
+    remotePeerIds.forEach(remotePeerId => {
+        const conn = peer.connect(remotePeerId);
+        conn.on('open', () => {
+            conn.send(data);
+            if (callBack) callBack();
+        });
     });
 }
