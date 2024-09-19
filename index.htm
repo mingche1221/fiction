@@ -233,7 +233,7 @@
             left: 0;
             width: 100%;
             text-align: center;
-            user-select: auto;
+            user-select: text;
             z-index: 3;
         }
         .players .guess.submited:not(.checked) ~ .wmsg.waiting {
@@ -252,7 +252,7 @@
             word-break: break-all;
             max-width: 380px;
             margin: 1rem auto;
-            user-select: all;
+            user-select: text;
         }
         .answer.submited ~ .lie-brarians-panel {
             display: block;
@@ -273,7 +273,7 @@
             margin: 0 auto;
             max-height: 3rem;
             font-size: 1.25rem;
-            user-select: all;
+            user-select: none;
         }
         @keyframes fade-out {
             to {
@@ -415,7 +415,7 @@
                 <div class="key">ㄅ</div>
                 <div class="key">ㄉ</div>
                 <div class="key placeholder"><input type="checkbox" id="edit_key"></div>
-                <div class="key placeholder"></div>
+                <div class="key placeholder">t</div>
                 <div class="key">ㄓ</div>
                 <div class="key placeholder"></div>
                 <div class="key placeholder"></div>
@@ -482,8 +482,8 @@
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <script src="dict_5_code.js"></script>
-<script src="connect.js?v=10"></script>
-<script src="state.js?v=5"></script>
+<script src="connect.js?v=11"></script>
+<script src="state.js?v=11"></script>
 <script src="controller.js"></script>
 
 </body>
