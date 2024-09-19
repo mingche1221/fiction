@@ -5,7 +5,6 @@ var remotePeerIds = [];
 var isLieBrarians = location.search == '';
 
 peer.on('disconnected', () => {
-    msg('連線中斷，正在恢復連線')
     peer.reconnect();
 });
 
@@ -13,8 +12,6 @@ peer.on('open', id => {
     if (isLieBrarians) document.querySelector('.link').innerText = location.href + '?' + id;
     msg('已連線到網路')
 });
-
-peer.on('error', err => msg('peer error: ' + err));
 
 peer.on('connection', conn => {
     conn.on('data', data => {
@@ -29,7 +26,7 @@ peer.on('connection', conn => {
                     const lastGuess = checkedGuess[checkedGuess.length - 1];
                     const codes = lastGuess.querySelectorAll('.code');
                     const tOF = results[data] == liedResults[data]
-                    codes[data].classList.add(tOF ? 'truth' : 'fiction');
+                    codes[data].classList.add(tOF ? 'fact' : 'fiction');
                     send(tOF ? 1 : 0);
                     tOFCount++;
                 }
@@ -44,17 +41,17 @@ peer.on('connection', conn => {
                 });
                 guess.classList.add('checked');
             } else if (typeof data == 'number') {
-                truthOrFiction.classList.add(data ? 'truth' : 'fiction');
-                truthOrFiction.parentNode.parentNode.classList.add('truth-or-fiction');
+                factOrFiction.classList.add(data ? 'fact' : 'fiction');
+                factOrFiction.parentNode.parentNode.classList.add('fact-or-fiction');
                 tOFCount++;
                 const keys = document.querySelectorAll('.key');
                 if (data) {
                     keys.forEach(key => {
-                        if (key.innerText == truthOrFiction.innerText) {
+                        if (key.innerText == factOrFiction.innerText) {
                             key.classList.remove('check', 'tilde', 'x');
-                            if (truthOrFiction.classList.contains('check')) key.classList.add('check');
-                            if (truthOrFiction.classList.contains('tilde')) key.classList.add('tilde');
-                            if (truthOrFiction.classList.contains('x')) key.classList.add('x');
+                            if (factOrFiction.classList.contains('check')) key.classList.add('check');
+                            if (factOrFiction.classList.contains('tilde')) key.classList.add('tilde');
+                            if (factOrFiction.classList.contains('x')) key.classList.add('x');
                         }
                     });
                 } else {
@@ -62,7 +59,7 @@ peer.on('connection', conn => {
                     const lastGuess = guesses[guesses.length - 1];
                     const codes = lastGuess.querySelectorAll('.code');
                     codes.forEach(code => {
-                        if (code.innerText != truthOrFiction.innerText) {
+                        if (code.innerText != factOrFiction.innerText) {
                             keys.forEach(key => {
                                 if (key.innerText == code.innerText) {
                                     key.classList.remove('check', 'tilde', 'x');

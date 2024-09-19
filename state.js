@@ -3,7 +3,7 @@ var guessCodes = [];
 var results = [];
 var liedResults = [];
 var lieCode;
-var truthOrFiction;
+var factOrFiction;
 var tOFCount = 0;
 
 document.querySelector('.keyboard').addEventListener('click', e => {
@@ -62,10 +62,10 @@ document.querySelector('.guesses').addEventListener('click', e => {
             if (tOFCount < 3) {
                 const checkedGuess = document.querySelectorAll('.submited.checked');
                 const lastGuess = checkedGuess[checkedGuess.length - 1];
-                if (lastGuess && !lastGuess.classList.contains('truth-or-fiction')) {
+                if (lastGuess && !lastGuess.classList.contains('fact-or-fiction')) {
                     lastGuess.querySelectorAll('.code').forEach((b, i) => {
                         if (b.innerText == e.target.innerText) {
-                            truthOrFiction = b;
+                            factOrFiction = b;
                             send(i, '確認中');
                         }
                     })
@@ -144,5 +144,4 @@ function test() {
     } else {
         guess.classList.add('wrong');
     }
-
 }
