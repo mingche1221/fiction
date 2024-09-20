@@ -15,6 +15,7 @@ peer.on('open', id => {
 
 peer.on('connection', conn => {
     conn.on('data', data => {
+        navigator.vibrate(200);
         if (isLieBrarians) {
             if (remotePeerIds.indexOf(conn.peer) === -1) remotePeerIds.push(conn.peer);
             if (Array.isArray(data)) {
