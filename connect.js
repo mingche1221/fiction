@@ -87,7 +87,7 @@ peer.on('connection', conn => {
                 });
                 document.querySelector('.wmsg.waiting').style="display:none";
                 alert(data);
-                peer.close();
+                peer.destroy();
             } else {
                 alert(data);
             }

@@ -128,7 +128,7 @@ function checkAnswer() {
         codeArea.classList.add('checked');
         send('答對了');
         msg('對手答對了');
-        peer.close();
+        peer.destroy();
     }
 }
 function test() {
