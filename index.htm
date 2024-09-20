@@ -55,10 +55,12 @@
             position: fixed;
             right: 50%;
             transform: var(--transform);
-            bottom: 10rem;
+            bottom: 11rem;
             z-index: 1;
-            background-color: transparent;
+            background-color: white;
             box-shadow: none;
+            z-index: 2;
+            border: 1px solid silver;
         }
         .guess.wrong {
             animation: wrong 0.3s ;
@@ -145,13 +147,16 @@
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c0 -1.657 1.592 -3 3.556 -3c1.963 0 3.11 1.5 4.444 3c1.333 1.5 2.48 3 4.444 3s3.556 -1.343 3.556 -3" /></svg>') center / var(--icon-size) no-repeat #ffba2c;
                 box-shadow: inset 0 0 0 1px var(--color-black), inset 0 0 0 2px #ffba2c, inset 0 0 0 3px var(--color-black), inset 0 0 0 6px #f6d76e, inset 0 0 0 8px var(--color-black);
         }
-        .code.check {
+        .lie-brarians .code.check,
+        .checked .code.check {
             background-color: #90cbec;
         }
-        .code.x {
+        .lie-brarians .code.x,
+        .checked .code.x {
             background-color: #c1c1c1;
         }
-        .code.tilde {
+        .lie-brarians .code.tilde,
+        .checked .code.tilde {
             background-color: #f6d76e;
         }
         .words {
@@ -170,7 +175,7 @@
             --scale: 1.9;
             width: fit-content;
             margin: 0 auto;
-            padding: 4.5rem 0.25rem 0.5rem;
+            padding: 0.5rem 0.25rem;
             position: fixed;
             bottom: 0.5rem;
             right: 50%;
@@ -178,6 +183,7 @@
             background-color: white;
             border: 1px solid silver;
             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            z-index: 1;
         }
         .key-row {
             display: flex;
@@ -208,6 +214,15 @@
         }
         .key.check {
             background-color: #90cbec;
+        }
+        .key.definite-x {
+            background-color: #c1c1c1 !important;
+        }
+        .key.definite-tilde {
+            background-color: #f6d76e !important;
+        }
+        .key.definite-check {
+            background-color: #90cbec !important;
         }
         .key.placeholder {
             border: 0;
@@ -251,7 +266,7 @@
             display: block;
         }
         .answer.submited ~ .keyboard {
-            display: none;
+            pointer-events: none;
         }
         .lie-brarians-panel {
             display: none;
@@ -312,6 +327,9 @@
             }
         }
         .lie-brarians #edit_key {
+            display: none;
+        }
+        main:not(.ready) {
             display: none;
         }
     </style>
@@ -431,14 +449,14 @@
             </div>
             <div class="wmsg waiting">等待對手</div>
             <div class="wmsg lie">
-                設定一個謊言 <button onclick="test()" style="font-size: 1rem">送出</button>
+                設定一個謊言 <button onclick="lie()" style="font-size: 1rem">送出</button>
             </div>
         </div>
         <div class="keyboard">
             <div class="key-row">
                 <div class="key">ㄅ</div>
                 <div class="key">ㄉ</div>
-                <div class="key placeholder"><input type="checkbox" id="edit_key"></div>
+                <div class="key placeholder"><input type="checkbox" id="edit_key" onchange="sendClientKeyboard()"></div>
                 <div class="key placeholder"></div>
                 <div class="key">ㄓ</div>
                 <div class="key placeholder"></div>
@@ -494,33 +512,11 @@
     </main>
     <div class="msgs"></div>
 
-<script>
-    function msg(msg) {
-        console.log(msg);
-        const div = document.createElement('div');
-        div.textContent = msg;
-        div.classList.add('msg');
-        document.querySelector('.msgs').appendChild(div)
-    }
-</script>
-
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
 <script src="dict_5_code.js"></script>
-<script src="connect.js?v=12"></script>
-<script src="state.js?v=12"></script>
-<script src="controller.js"></script>
 
-<script>
-    document.querySelector('.copy-btn').addEventListener('click', () => {
-        navigator.clipboard.writeText(document.querySelector('.link').innerText)
-        .then(() => {
-            msg('連結已複製');
-        })
-        .catch((err) => {
-            msg('複製失敗');
-        });
-    });
-</script>
+<script src="state.js?v=17"></script>
+<script src="connect.js?v=17"></script>
+<script src="controller.js?v=17"></script>
 </body>
 </html>
