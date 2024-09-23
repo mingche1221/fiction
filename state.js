@@ -1,5 +1,10 @@
 var isLieBrarians = location.search == '';
 
+if (location.search == '?clear') {
+    localStorage.clear();
+    location.href = './';
+}
+
 if (!isLieBrarians) {
     localStorage.removeItem('peerId');
     localStorage.removeItem('answerCodes');
