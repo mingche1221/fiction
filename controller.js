@@ -141,6 +141,7 @@ function receiveData(data, conn = null) {
                 msg('猜對了！', true);
                 alert('猜對了！');
                 peer.destroy();
+                localStorage.clear();
                 break;
             case 'f':
                 document.querySelector('.answer').outerHTML = data[1];
@@ -148,6 +149,7 @@ function receiveData(data, conn = null) {
                 msg('10 次機會用完了！', true);
                 alert('10 次機會用完了！');
                 peer.destroy();
+                localStorage.clear();
                 break;
             default:
                 alert(data);
