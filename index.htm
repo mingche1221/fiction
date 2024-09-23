@@ -293,7 +293,7 @@
             border-top: 1px solid silver;
             cursor: pointer;
         }
-        .answer.submited ~ .lie-brarians-panel {
+        .lie-brarians .answer.submited ~ .lie-brarians-panel {
             display: block;
         }
         .msgs {
@@ -314,6 +314,9 @@
             font-size: 1.25rem;
             user-select: none;
         }
+        .msg.fixed {
+            animation: none;
+        }
         @keyframes fade-out {
             to {
                 max-height: 0;
@@ -326,7 +329,9 @@
                 opacity: 0;
             }
         }
-        .lie-brarians #edit_key {
+        .lie-brarians #edit_key,
+        .answer.submited ~ .keyboard .key.back,
+        .answer.submited ~ .keyboard .key.enter {
             display: none;
         }
         main:not(.ready) {

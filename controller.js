@@ -50,17 +50,20 @@ document.querySelector('.guesses').addEventListener('click', e => {
         }
 });
 
-function receiveData(data) {
+function receiveData(data, conn = null) {
     if (isLieBrarians) {
         if (Array.isArray(data)) {
             if (data.length == 5) {
                 guessCodes = data;
+                send(['msg', '出題者已收到猜測']);
                 checkAnswer();
+                send(['guesses', document.querySelector('.guesses').innerHTML]);
             } else {
                 switch (data[0]) {
                     case 'keyboard':
                         document.querySelector('.keyboard').innerHTML = data[1];
-                        send(['keyboard', data[1]], '鍵盤推測已更新', null, data[2]);
+                        send(['keyboard', data[1]], '鍵盤已更新', null, data[2]);
+                        send(['msg', '鍵盤已更新'], null, null, data[2]);
                         break;
                     default:
                         break;
@@ -102,6 +105,7 @@ function receiveData(data) {
                     }
 
                     save();
+                    send(['msg', `已檢查，剩餘 ${(3 - tOFCount)} 次`]);
                     send(['guesses', document.querySelector('.guesses').innerHTML]);
                     send(['tOFCount', tOFCount]);
                     send(['keyboard', document.querySelector('.keyboard').innerHTML]);
@@ -109,10 +113,10 @@ function receiveData(data) {
 
             }
         } else if (data == 'connecting') {
-            send(['msg', '已連結到對手']);
-            send(['guesses', document.querySelector('.guesses').innerHTML]);
-            send(['keyboard', document.querySelector('.keyboard').innerHTML]);
-            send(['tOFCount', tOFCount]);
+            conn.send(['msg', '已連接出題者']);
+            conn.send(['guesses', document.querySelector('.guesses').innerHTML]);
+            conn.send(['keyboard', document.querySelector('.keyboard').innerHTML]);
+            conn.send(['tOFCount', tOFCount]);
         } else {
             console.log(data)
         }
@@ -123,6 +127,7 @@ function receiveData(data) {
                 break;
             case 'guesses':
                 document.querySelector('.guesses').innerHTML = data[1];
+                refresh();
                 break;
             case 'tOFCount':
                 tOFCount = data[1];
@@ -131,9 +136,17 @@ function receiveData(data) {
                 document.querySelector('.keyboard').innerHTML = data[1];
                 break;
             case 'c':
-                document.querySelector('.guesses').innerHTML = data[1];
+                document.querySelector('.answer').outerHTML = data[1];
                 document.querySelector('.wmsg.waiting').style="display:none";
-                alert('答對了');
+                msg('猜對了！', true);
+                alert('猜對了！');
+                peer.destroy();
+                break;
+            case 'f':
+                document.querySelector('.answer').outerHTML = data[1];
+                document.querySelector('.wmsg.waiting').style="display:none";
+                msg('10 次機會用完了！', true);
+                alert('10 次機會用完了！');
                 peer.destroy();
                 break;
             default:
@@ -145,11 +158,12 @@ function receiveData(data) {
 
 }
 
-function msg(msg) {
+function msg(msg, fixed = false) {
     console.log(msg);
     const div = document.createElement('div');
     div.textContent = msg;
     div.classList.add('msg');
+    if (fixed) div.classList.add('fixed');
     document.querySelector('.msgs').appendChild(div)
 }
 
@@ -211,7 +225,13 @@ function checkAnswer() {
 
     if (checkCount == 5) {
         codeArea.classList.add('checked');
-        send(['c', document.querySelector('.guesses').innerHTML], '對手答對了');
+        send(['c', document.querySelector('.answer').outerHTML]);
+        msg('被猜中了！', true);
+        localStorage.clear();
+    } else if (document.querySelectorAll('.guess.submited').length == 10) {
+        codeArea.classList.add('checked');
+        send(['f', document.querySelector('.answer').outerHTML]);
+        msg('10 次機會用完了！', true);
         localStorage.clear();
     }
 }
@@ -228,6 +248,7 @@ function lie() {
     if (JSON.stringify(liedResults) !== JSON.stringify(results)) {
         guess.classList.add('checked');
         // send(liedResults);
+        send(['msg', '出題者已回應猜測']);
         send(['guesses', document.querySelector('.guesses').innerHTML]);
     } else {
         guess.classList.add('wrong');
@@ -271,7 +292,6 @@ document.querySelector('.copy-btn').addEventListener('click', () => {
 
 function sendClientKeyboard() {
     if (!document.getElementById('edit_key').checked) {
-        console.log('a');
         send(['keyboard', document.querySelector('.keyboard').innerHTML, peer.id]);
     }
 }
