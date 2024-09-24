@@ -1,63 +1,70 @@
-var peer = new Peer(localStorage.getItem(isLieBrarians ? 'peerId' : location.search.replace('?', '')));
-
-
+var peer = new Peer(localStorage.getItem(isLieBrarian ? 'peerId' : location.search.replace('?', '')));
 
 peer.on('disconnected', () => {
     peer.reconnect();
 });
 
 peer.on('error', err => {
-    if (err.type == 'unavailable-id') {
-        // localStorage.removeItem('peerId');
+    switch (err.type) {
+        case 'unavailable-id':
+            // localStorage.removeItem('peerId');
+            break;
+        case 'network':
+            // msg('網路異常，請重整頁面');
+            // document.querySelector('main').classList.add('disabled');
+            send(['msg', 'network down']);
+            break;
+        default:
+            msg(`${err.type} / ${err}`);
+            break;
     }
-    msg(err);
 });
 
 peer.on('open', id => {
-    localStorage.setItem(isLieBrarians ? 'peerId' : location.search.replace('?', ''), id);
+    localStorage.setItem(isLieBrarian ? 'peerId' : location.search.replace('?', ''), id);
 
-    if (isLieBrarians) {
+    if (isLieBrarian) {
         document.querySelector('.link').innerText = location.href + '?' + id;
-        restore();
-        peer.on('connection', conn => {
-            conn.on('data', data => {receiveData(data, conn)});
-            addPeer(conn);
-        });
+        if (localStorage.getItem('remotePeerIds')) {
+            const savedIds = JSON.parse(localStorage.getItem('remotePeerIds'));
+            savedIds.forEach(id => {
+                addPeer(id);
+            });
+        }
     } else {
-        const lieBrariansPeerId = location.search.replace('?', '');
-        const conn = peer.connect(lieBrariansPeerId);
-        conn.on('data', receiveData);
-        remotePeerIds[lieBrariansPeerId] = conn;
-        conn.on('open', () => {
-            send('connecting')
-        });
-        conn.on('error', err => msg(err))
-        peer.on('connection', conn => {
-            remotePeerIds[lieBrariansPeerId] = conn;
-            conn.on('data', receiveData);
-        });
+        connectLieBrarian(lieBrarianPeerId);
     }
     document.querySelector('main').classList.add('ready');
     msg('已連線到網路');
 
 });
 
+peer.on('connection', conn => {
+    if (isLieBrarian) {
+        addPeer(conn);
+    } else {
+        connectLieBrarian(conn.peer);
+        msg('出題者已重新連線');
+        conn.close();
+    }
+});
+
 function send(data, message = null, callBack = null, ignoreId = null) {
     if (message) {
         msg(message)
     }
-    Object.values(remotePeerIds).forEach(conn => {
+    Object.values(remotePeers).forEach(conn => {
         if (!ignoreId || conn.peer != ignoreId) {
             if (conn.open) {
                 conn.send(data);
             } else {
-                const newConn = peer.connect(conn.peer);
-                remotePeerIds[conn.peer] = newConn;
-                newConn.on('data', receiveData);
-                newConn.on('open', () => {
-                    newConn.send(data);
-                });
-                msg('重新連線中');
+                // const newConn = peer.connect(conn.peer);
+                // remotePeers[conn.peer] = newConn;
+                // newConn.on('data', receiveData);
+                // newConn.on('open', () => {
+                //     newConn.send(data);
+                // });
+                msg('與猜測者失去連線');
             }
             if (callBack) callBack();
         }
@@ -67,18 +74,37 @@ function send(data, message = null, callBack = null, ignoreId = null) {
 function addPeer(idOrConn) {
     if (typeof idOrConn === 'object') {
         const conn = idOrConn;
-        if (remotePeerIds[conn.peer] === undefined) {
-            // const playerSn = Object.keys(remotePeerIds).indexOf(conn.peer) + 1;
-            const playerSn = Object.keys(remotePeerIds).length + 1;
+        conn.on('data', data => {receiveData(data, conn)});
+        conn.on('close', () => msg('猜測者斷線'));
+        conn.on('error', err => msg(`連線異常：${err.type}`));
+        if (typeof remotePeers[conn.peer] === 'undefined') {
+            const playerSn = Object.keys(remotePeers).length + 1;
             send(['msg', `猜測者 ${playerSn} 連入`], `猜測者 ${playerSn} 連入`, null, conn.peer);
+        } else {
+            const playerSn = Object.keys(remotePeers).indexOf(conn.peer) + 1;
+            remotePeers[conn.peer].close();
+            send(['msg', `猜測者 ${playerSn} 已重新連線`], `猜測者 ${playerSn} 已重新連線`, null, conn.peer);
         }
-        remotePeerIds[conn.peer] = conn;
+        remotePeers[conn.peer] = conn;
+        save();
     } else {
-        const conn = peer.connect(idOrConn);
-        conn.on('open', () => {
-            remotePeerIds[conn.peer] = conn;
-            conn.on('data', receiveData);
-        });
+        const id = idOrConn;
+        if (typeof remotePeers[id] !== 'undefined') remotePeers[id].close();
+        const conn = peer.connect(id);
     }
-    save();
+}
+
+function connectLieBrarian(id) {
+    const conn = peer.connect(id);
+
+    if (typeof remotePeers[id] !== 'undefined') remotePeers[id].close();
+
+    conn.on('open', () => {
+        send('connecting');
+    });
+    conn.on('data', receiveData);
+    conn.on('close', () => msg('出題者斷線'));
+    conn.on('error', err => msg(`連線異常：${err.type}`));
+
+    remotePeers[id] = conn;
 }

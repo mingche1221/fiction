@@ -1,5 +1,5 @@
 
-document.body.classList.add(isLieBrarians ? 'lie-brarians' : 'players');
+document.body.classList.add(isLieBrarian ? 'lie-brarian' : 'players');
 
 document.querySelector('.keyboard').addEventListener('click', e => {
     if (e.target.classList.contains('key')) {
@@ -26,7 +26,7 @@ document.querySelector('.keyboard').addEventListener('click', e => {
 });
 document.querySelector('.guesses').addEventListener('click', e => {
     if (e.target.classList.contains('code')) 
-        if (isLieBrarians) {
+        if (isLieBrarian) {
             document.querySelector('.guess.submited:not(.checked)').classList.remove('wrong');
             if (lieCode != e.target) {
                 document.querySelectorAll('.guess.submited:not(.checked) .code').forEach((b, i) => {
@@ -51,7 +51,7 @@ document.querySelector('.guesses').addEventListener('click', e => {
 });
 
 function receiveData(data, conn = null) {
-    if (isLieBrarians) {
+    if (isLieBrarian) {
         if (Array.isArray(data)) {
             if (data.length == 5) {
                 guessCodes = data;
@@ -64,6 +64,10 @@ function receiveData(data, conn = null) {
                         document.querySelector('.keyboard').innerHTML = data[1];
                         send(['keyboard', data[1]], '鍵盤已更新', null, data[2]);
                         send(['msg', '鍵盤已更新'], null, null, data[2]);
+                        break;
+                    case 'user-message':
+                        msg(data[1], ['user-message']);
+                        send(['user-message', data[1]]);
                         break;
                     default:
                         break;
@@ -135,10 +139,13 @@ function receiveData(data, conn = null) {
             case 'keyboard':
                 document.querySelector('.keyboard').innerHTML = data[1];
                 break;
+            case 'user-message':
+                msg(data[1], ['user-message']);
+                break;
             case 'c':
                 document.querySelector('.answer').outerHTML = data[1];
                 document.querySelector('.wmsg.waiting').style="display:none";
-                msg('猜對了！', true);
+                msg('猜對了！', ['fixed']);
                 alert('猜對了！');
                 peer.destroy();
                 localStorage.clear();
@@ -146,7 +153,7 @@ function receiveData(data, conn = null) {
             case 'f':
                 document.querySelector('.answer').outerHTML = data[1];
                 document.querySelector('.wmsg.waiting').style="display:none";
-                msg('10 次機會用完了！', true);
+                msg('10 次機會用完了！', ['fixed']);
                 alert('10 次機會用完了！');
                 peer.destroy();
                 localStorage.clear();
@@ -160,28 +167,28 @@ function receiveData(data, conn = null) {
 
 }
 
-function msg(msg, fixed = false) {
+function msg(msg, classes = null) {
     console.log(msg);
     const div = document.createElement('div');
     div.textContent = msg;
     div.classList.add('msg');
-    if (fixed) div.classList.add('fixed');
+    if (classes) div.classList.add(...classes);
     document.querySelector('.msgs').appendChild(div)
 }
 
 function refresh() {
-    const codeArea = document.querySelector(isLieBrarians ? '.answer' : '.guesses .guess:not(.submited)');
+    const codeArea = document.querySelector(isLieBrarian ? '.answer' : '.guesses .guess:not(.submited)');
     codeArea.classList.remove('wrong');
-    document.querySelectorAll(isLieBrarians ? '.answer:not(.submited) .code' : '.guess:not(.submited) .code').forEach((b, i) => {
+    document.querySelectorAll(isLieBrarian ? '.answer:not(.submited) .code' : '.guess:not(.submited) .code').forEach((b, i) => {
         b.innerText = guessCodes[i] ?? '';
     });
 }
 function submit() {
-    const codeArea = document.querySelector(isLieBrarians ? '.answer:not(.submited)' : '.guess:not(.submited)');
+    const codeArea = document.querySelector(isLieBrarian ? '.answer:not(.submited)' : '.guess:not(.submited)');
     if (guessCodes.length == 5) {
         const words = guessCodes.reduce((obj, key) => obj && obj[key], dict);
         if (words) {
-            if (isLieBrarians) {
+            if (isLieBrarian) {
                 codeArea.querySelector('.words').innerText = words.join(', ');
                 answerCodes = guessCodes;
                 codeArea.classList.add('submited');
@@ -228,12 +235,12 @@ function checkAnswer() {
     if (checkCount == 5) {
         codeArea.classList.add('checked');
         send(['c', document.querySelector('.answer').outerHTML]);
-        msg('被猜中了！', true);
+        msg('被猜中了！', ['fixed']);
         localStorage.clear();
     } else if (document.querySelectorAll('.guess.submited').length == 10) {
         codeArea.classList.add('checked');
         send(['f', document.querySelector('.answer').outerHTML]);
-        msg('10 次機會用完了！', true);
+        msg('10 次機會用完了！', ['fixed']);
         localStorage.clear();
     }
 }
@@ -296,4 +303,19 @@ function sendClientKeyboard() {
     if (!document.getElementById('edit_key').checked) {
         send(['keyboard', document.querySelector('.keyboard').innerHTML, peer.id]);
     }
+}
+
+function showMessageInput() {
+    const messageInputLightbox = document.getElementById('message_input_lightbox');
+    messageInputLightbox.classList.toggle('show');
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('message_input');
+    if (isLieBrarian) {
+        msg(messageInput.value, ['user-message']);
+    }
+    send(['user-message', messageInput.value]);
+    messageInput.value = '';
+    document.getElementById('message_input_lightbox').classList.remove('show');
 }

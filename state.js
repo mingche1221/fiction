@@ -1,11 +1,12 @@
-var isLieBrarians = location.search == '';
+var isLieBrarian = location.search == '';
+var lieBrarianPeerId = location.search.replace('?', '');
 
 if (location.search == '?clear') {
     localStorage.clear();
     location.href = './';
 }
 
-if (!isLieBrarians) {
+if (!isLieBrarian) {
     localStorage.removeItem('peerId');
     localStorage.removeItem('answerCodes');
     localStorage.removeItem('answer');
@@ -18,7 +19,7 @@ if (!isLieBrarians) {
     localStorage.removeItem('keyboard');
 }
 
-var remotePeerIds = {};
+var remotePeers = {};
 var answerCodes = JSON.parse(localStorage.getItem('answerCodes')) || [];
 var guessCodes = JSON.parse(localStorage.getItem('guessCodes')) || [];
 var results = JSON.parse(localStorage.getItem('results')) || [];
@@ -27,24 +28,19 @@ var tOFCount = localStorage.getItem('tOFCount') || 0;
 
 var lieCode;
 
-function restore() {
-    if (localStorage.getItem('guesses'))
-        document.querySelector('.guesses').innerHTML = localStorage.getItem('guesses');
-    if (localStorage.getItem('answer'))
-        document.querySelector('.answer').outerHTML = localStorage.getItem('answer');
-    if (localStorage.getItem('keyboard'))
-        document.querySelector('.keyboard').innerHTML = localStorage.getItem('keyboard');
-    if (localStorage.getItem('remotePeerIds')) {
-        const savedIds = JSON.parse(localStorage.getItem('remotePeerIds'));
-        savedIds.forEach(id => {
-            addPeer(id);
-        });
-    }
+
+if (localStorage.getItem('guesses')) {
+    document.querySelector('.guesses').innerHTML = localStorage.getItem('guesses');
+}
+if (localStorage.getItem('answer')) {
+    document.querySelector('.answer').outerHTML = localStorage.getItem('answer');
+}
+if (localStorage.getItem('keyboard')) {
+    document.querySelector('.keyboard').innerHTML = localStorage.getItem('keyboard');
 }
 
 function save() {
-    console.log('save');
-    localStorage.setItem('remotePeerIds', JSON.stringify(Object.keys(remotePeerIds)));
+    localStorage.setItem('remotePeerIds', JSON.stringify(Object.keys(remotePeers)));
     localStorage.setItem('answerCodes', JSON.stringify(answerCodes));
     localStorage.setItem('guessCodes', JSON.stringify(guessCodes));
     localStorage.setItem('results', JSON.stringify(results));

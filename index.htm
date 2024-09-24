@@ -19,6 +19,7 @@
         body {
             font-family: "LXGW WenKai Mono TC", monospace;
             user-select: none;
+            -webkit-user-select: none;
         }
         main {
             position: relative;
@@ -47,7 +48,7 @@
         .guess:not(.submited) {
             display: none;
         }
-        .lie-brarians .answer:not(.submited),
+        .lie-brarian .answer:not(.submited),
         .players .guess:not(.submited):first-child,
         .players .guess.submited.checked + .guess:not(.submited) {
             --transform: translateX(50%);
@@ -147,15 +148,15 @@
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c0 -1.657 1.592 -3 3.556 -3c1.963 0 3.11 1.5 4.444 3c1.333 1.5 2.48 3 4.444 3s3.556 -1.343 3.556 -3" /></svg>') center / var(--icon-size) no-repeat #ffba2c;
                 box-shadow: inset 0 0 0 1px var(--color-black), inset 0 0 0 2px #ffba2c, inset 0 0 0 3px var(--color-black), inset 0 0 0 6px #f6d76e, inset 0 0 0 8px var(--color-black);
         }
-        .lie-brarians .code.check,
+        .lie-brarian .code.check,
         .checked .code.check {
             background-color: #90cbec;
         }
-        .lie-brarians .code.x,
+        .lie-brarian .code.x,
         .checked .code.x {
             background-color: #c1c1c1;
         }
-        .lie-brarians .code.tilde,
+        .lie-brarian .code.tilde,
         .checked .code.tilde {
             background-color: #f6d76e;
         }
@@ -256,19 +257,18 @@
             left: 0;
             width: 100%;
             text-align: center;
-            user-select: text;
             z-index: 3;
         }
         .players .guess.submited:not(.checked) ~ .wmsg.waiting {
             display: block;
         }
-        .lie-brarians .guess.submited:not(.checked) ~ .wmsg.lie {
+        .lie-brarian .guess.submited:not(.checked) ~ .wmsg.lie {
             display: block;
         }
         .answer.submited ~ .keyboard {
             pointer-events: none;
         }
-        .lie-brarians-panel {
+        .lie-brarian-panel {
             display: none;
             position: relative;
             border: 1px solid silver;
@@ -280,6 +280,7 @@
             word-break: break-all;
             max-width: 240px;
             user-select: text;
+            -webkit-user-select: text;
         }
         .copy-btn {
             position: absolute;
@@ -293,7 +294,7 @@
             border-top: 1px solid silver;
             cursor: pointer;
         }
-        .lie-brarians .answer.submited ~ .lie-brarians-panel {
+        .lie-brarian .answer.submited ~ .lie-brarian-panel {
             display: block;
         }
         .msgs {
@@ -313,6 +314,7 @@
             max-height: 3rem;
             font-size: 1.25rem;
             user-select: none;
+            -webkit-user-select: none;
         }
         .msg.fixed {
             animation: none;
@@ -329,13 +331,54 @@
                 opacity: 0;
             }
         }
-        .lie-brarians #edit_key,
+        .lie-brarian #edit_key,
         .answer.submited ~ .keyboard .key.back,
         .answer.submited ~ .keyboard .key.enter {
             display: none;
         }
         main:not(.ready) {
             display: none;
+        }
+        main.disabled {
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+        .lightbox {
+            position: fixed;
+            display: flex;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #3333;
+            z-index: 2;
+        }
+        .lightbox:not(.show) {
+            display: none;
+        }
+        .lightbox-container {
+            margin: auto;
+            padding: 1rem;
+            background-color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+        #message_input {
+            font-size: 1rem;
+            font-family: sans-serif;
+            font-weight: 400;
+            padding: 0.25em 0.5em;
+        }
+        .msg.user-message:last-child {
+            animation: none;
+        }
+        #message_btn {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23464646" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10" /><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2" /></svg>') no-repeat center / 80% auto;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -462,7 +505,7 @@
                 <div class="key">ㄅ</div>
                 <div class="key">ㄉ</div>
                 <div class="key placeholder"><input type="checkbox" id="edit_key" onchange="sendClientKeyboard()"></div>
-                <div class="key placeholder"></div>
+                <div class="key placeholder"><button type="button" id="message_btn" onclick="showMessageInput()"></button></div>
                 <div class="key">ㄓ</div>
                 <div class="key placeholder"></div>
                 <div class="key placeholder"></div>
@@ -510,18 +553,25 @@
                 <div class="key enter"></div>
             </div>
         </div>
-        <div class="lie-brarians-panel">
+        <div class="lie-brarian-panel">
             <div class="link"></div>
             <button type="button" class="copy-btn"></button>
         </div>
     </main>
     <div class="msgs"></div>
 
+    <div class="lightbox" id="message_input_lightbox">
+        <div class="lightbox-container">
+                <input type="text" id="message_input">
+                <button type="button" onclick="sendMessage()">送出</button>
+        </div>
+    </div>
+
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="dict_5_code.js"></script>
 
-<script src="state.js?v=21"></script>
-<script src="connect.js?v=21"></script>
-<script src="controller.js?v=21"></script>
+<script src="state.js?v=28"></script>
+<script src="connect.js?v=28"></script>
+<script src="controller.js?v=28"></script>
 </body>
 </html>
