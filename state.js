@@ -1,6 +1,40 @@
 var isLieBrarian = location.search == '';
 var lieBrarianPeerId = location.search.replace('?', '');
 
+var animals = {
+    'bat' : '蝙蝠',
+    'cat' : '小貓',
+    'fishbone' : '魚骨頭',
+    'fish' : '魚兒',
+    'pig' : '小豬',
+    'elephant' : '大象',
+    'tower' : '城堡',
+    'batterylow' : '低電量',
+    'truckdelivery' : '快遞',
+    'apple' : '蘋果',
+    'carrot' : '紅蘿蔔',
+    'lollipop' : '棒棒糖',
+    'dice5' : '骰子',
+    'aquarius' : '水瓶座',
+    'moon' : '月亮',
+    'cloud' : '雲朵',
+    'sunset' : '落日',
+    'wind' : '風兒',
+    'camper' : '露營車',
+    'helicopter' : '直升機',
+    'sailboat' : '帆船',
+    'scooter' : '滑板車',
+    'football' : '美式足球',
+    'bowling' : '保齡球',
+    'meeple' : '米寶',
+    'lego' : '樂高',
+    'heartbeat' : '心跳',
+    'balloon' : '氣球',
+    'circus' : '馬戲團',
+    'carousel' : '摩天輪'
+
+}
+
 if (location.search == '?clear') {
     localStorage.clear();
     location.href = './';
@@ -11,6 +45,7 @@ if (!isLieBrarian) {
     localStorage.removeItem('answerCodes');
     localStorage.removeItem('answer');
     localStorage.removeItem('remotePeerIds');
+    localStorage.removeItem('peerfeatures');
     localStorage.removeItem('guessCodes');
     localStorage.removeItem('results');
     localStorage.removeItem('liedResults');
@@ -20,6 +55,7 @@ if (!isLieBrarian) {
 }
 
 var remotePeers = {};
+var peerfeatures = JSON.parse(localStorage.getItem('peerfeatures')) || {};
 var answerCodes = JSON.parse(localStorage.getItem('answerCodes')) || [];
 var guessCodes = JSON.parse(localStorage.getItem('guessCodes')) || [];
 var results = JSON.parse(localStorage.getItem('results')) || [];
@@ -41,6 +77,7 @@ if (localStorage.getItem('keyboard')) {
 
 function save() {
     localStorage.setItem('remotePeerIds', JSON.stringify(Object.keys(remotePeers)));
+    localStorage.setItem('peerfeatures', JSON.stringify(peerfeatures));
     localStorage.setItem('answerCodes', JSON.stringify(answerCodes));
     localStorage.setItem('guessCodes', JSON.stringify(guessCodes));
     localStorage.setItem('results', JSON.stringify(results));

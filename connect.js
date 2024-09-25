@@ -34,7 +34,7 @@ peer.on('open', id => {
     } else {
         connectLieBrarian(lieBrarianPeerId);
     }
-    document.querySelector('main').classList.add('ready');
+    // document.querySelector('main').classList.add('ready');
     msg('已連線到網路');
 
 });
@@ -44,7 +44,7 @@ peer.on('connection', conn => {
         addPeer(conn);
     } else {
         connectLieBrarian(conn.peer);
-        msg('出題者已重新連線');
+        msg('圖書館員已重新連線');
         conn.close();
     }
 });
@@ -75,15 +75,22 @@ function addPeer(idOrConn) {
     if (typeof idOrConn === 'object') {
         const conn = idOrConn;
         conn.on('data', data => {receiveData(data, conn)});
-        conn.on('close', () => msg('猜測者斷線'));
+        conn.on('close', () => msg(`${animals[peerfeatures[conn.peer]]}斷線`));
         conn.on('error', err => msg(`連線異常：${err.type}`));
         if (typeof remotePeers[conn.peer] === 'undefined') {
-            const playerSn = Object.keys(remotePeers).length + 1;
-            send(['msg', `猜測者 ${playerSn} 連入`], `猜測者 ${playerSn} 連入`, null, conn.peer);
+            if (typeof peerfeatures[conn.peer] === 'undefined') {
+                const features = Object.keys(animals);
+                const used_features = new Set(Object.values(peerfeatures));
+                const available_features = [...new Set(features.filter(x => !used_features.has(x)))];
+                const random_index = Math.floor((Math.random() * available_features.length));
+                const playerFeature = available_features[random_index];
+                peerfeatures[conn.peer] = playerFeature;
+            }
+            send(['msg', `${animals[peerfeatures[conn.peer]]}連入`], `${animals[peerfeatures[conn.peer]]}連入`, null, conn.peer);
+            document.querySelector('header > div').innerHTML += `<div class="state ${peerfeatures[conn.peer]}-state"></div>`
         } else {
-            const playerSn = Object.keys(remotePeers).indexOf(conn.peer) + 1;
             remotePeers[conn.peer].close();
-            send(['msg', `猜測者 ${playerSn} 已重新連線`], `猜測者 ${playerSn} 已重新連線`, null, conn.peer);
+            send(['msg', `${animals[peerfeatures[conn.peer]]}已重新連線`], `${animals[peerfeatures[conn.peer]]}已重新連線`, null, conn.peer);
         }
         remotePeers[conn.peer] = conn;
         save();
@@ -103,7 +110,7 @@ function connectLieBrarian(id) {
         send('connecting');
     });
     conn.on('data', receiveData);
-    conn.on('close', () => msg('出題者斷線'));
+    conn.on('close', () => msg('圖書館員斷線'));
     conn.on('error', err => msg(`連線異常：${err.type}`));
 
     remotePeers[id] = conn;

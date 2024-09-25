@@ -7,7 +7,8 @@ document.querySelector('.keyboard').addEventListener('click', e => {
         const editKey = document.getElementById('edit_key');
         if (editKey.checked) {
             if (!key.classList.contains('back') && !key.classList.contains('enter')) {
-                rotateClass(key, 1);
+                const checkClass = rotateClass(key, 1);
+                send(['edit-key', key.innerText, checkClass]);
             }
         } else {
             if (key.innerText != '' && guessCodes.length < 5) {
@@ -27,15 +28,18 @@ document.querySelector('.keyboard').addEventListener('click', e => {
 document.querySelector('.guesses').addEventListener('click', e => {
     if (e.target.classList.contains('code')) 
         if (isLieBrarian) {
-            document.querySelector('.guess.submited:not(.checked)').classList.remove('wrong');
-            if (lieCode != e.target) {
-                document.querySelectorAll('.guess.submited:not(.checked) .code').forEach((b, i) => {
-                    b.classList.remove('x', 'check', 'tilde');
-                    b.classList.add(results[i]);
-                });
-                lieCode = e.target;
+            const guessing = document.querySelector('.guess.submited:not(.checked)');
+            if (guessing) {
+                guessing.classList.remove('wrong');
+                if (lieCode != e.target) {
+                    document.querySelectorAll('.guess.submited:not(.checked) .code').forEach((b, i) => {
+                        b.classList.remove('x', 'check', 'tilde');
+                        b.classList.add(results[i]);
+                    });
+                    lieCode = e.target;
+                }
+                rotateClass(lieCode);
             }
-            rotateClass(lieCode);
         } else {
             if (tOFCount < 3) {
                 const lastGuess = getLastGuess();
@@ -55,7 +59,7 @@ function receiveData(data, conn = null) {
         if (Array.isArray(data)) {
             if (data.length == 5) {
                 guessCodes = data;
-                send(['msg', '出題者已收到猜測']);
+                send(['msg', '圖書館員已收到猜測']);
                 checkAnswer();
                 send(['guesses', document.querySelector('.guesses').innerHTML]);
             } else {
@@ -68,6 +72,10 @@ function receiveData(data, conn = null) {
                     case 'user-message':
                         msg(data[1], ['user-message']);
                         send(['user-message', data[1]]);
+                        break;
+                    case 'edit-key':
+                        // msg(data[1], ['user-message']);
+                        // send(['user-message', data[1]]);
                         break;
                     default:
                         break;
@@ -117,7 +125,7 @@ function receiveData(data, conn = null) {
 
             }
         } else if (data == 'connecting') {
-            conn.send(['msg', '已連接出題者']);
+            conn.send(['msg', '已連接圖書館員']);
             conn.send(['guesses', document.querySelector('.guesses').innerHTML]);
             conn.send(['keyboard', document.querySelector('.keyboard').innerHTML]);
             conn.send(['tOFCount', tOFCount]);
@@ -173,7 +181,7 @@ function msg(msg, classes = null) {
     div.textContent = msg;
     div.classList.add('msg');
     if (classes) div.classList.add(...classes);
-    document.querySelector('.msgs').appendChild(div)
+    document.querySelector('.msgs').prepend(div)
 }
 
 function refresh() {
@@ -257,7 +265,7 @@ function lie() {
     if (JSON.stringify(liedResults) !== JSON.stringify(results)) {
         guess.classList.add('checked');
         // send(liedResults);
-        send(['msg', '出題者已回應猜測']);
+        send(['msg', '圖書館員已回應猜測']);
         send(['guesses', document.querySelector('.guesses').innerHTML]);
     } else {
         guess.classList.add('wrong');
@@ -269,13 +277,21 @@ function lie() {
 function rotateClass(ele, withEmpty = false) {
     if (ele.classList.contains('x')) {
         ele.classList.replace('x', 'tilde');
+        return 'tilde';
     } else if (ele.classList.contains('tilde')) {
         ele.classList.replace('tilde', 'check');
+        return 'check';
     } else if (ele.classList.contains('check')) {
         ele.classList.remove('check');
-        if (!withEmpty) ele.classList.add('x');
+        if (withEmpty) {
+            return '';
+        } else {
+            ele.classList.add('x');
+            return 'x';
+        }
     } else {
         ele.classList.add('x');
+        return 'x';
     }
 }
 
@@ -302,6 +318,13 @@ document.querySelector('.copy-btn').addEventListener('click', () => {
 function sendClientKeyboard() {
     if (!document.getElementById('edit_key').checked) {
         send(['keyboard', document.querySelector('.keyboard').innerHTML, peer.id]);
+        document.querySelector('.guesses').classList.remove('blur')
+        document.querySelector('body').classList.remove('blur')
+        msg('完成鍵盤編輯');
+    } else {
+        document.querySelector('.guesses').classList.add('blur')
+        document.querySelector('body').classList.add('blur')
+        msg('開始鍵盤編輯');
     }
 }
 
