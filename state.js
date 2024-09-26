@@ -1,9 +1,8 @@
 var isLieBrarian = location.search == '';
 var lieBrarianPeerId = location.search.replace('?', '');
 
-var animals = {
+var features = {
     'bat' : '蝙蝠',
-    'cat' : '小貓',
     'fishbone' : '魚骨頭',
     'fish' : '魚兒',
     'pig' : '小豬',

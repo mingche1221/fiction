@@ -6,7 +6,7 @@ document.querySelector('.keyboard').addEventListener('click', e => {
         const key = e.target;
         const editKey = document.getElementById('edit_key');
         if (editKey.checked) {
-            if (!key.classList.contains('back') && !key.classList.contains('enter')) {
+            if (!key.classList.contains('back') && !key.classList.contains('enter') && !key.classList.contains('placeholder')) {
                 const checkClass = rotateClass(key, 1);
                 send(['edit-key', key.innerText, checkClass]);
             }
@@ -59,23 +59,37 @@ function receiveData(data, conn = null) {
         if (Array.isArray(data)) {
             if (data.length == 5) {
                 guessCodes = data;
-                send(['msg', '圖書館員已收到猜測']);
+                send(['msg', `圖書館員收到${features[peerfeatures[conn.peer]]}的猜測`]);
                 checkAnswer();
                 send(['guesses', document.querySelector('.guesses').innerHTML]);
             } else {
                 switch (data[0]) {
                     case 'keyboard':
                         document.querySelector('.keyboard').innerHTML = data[1];
-                        send(['keyboard', data[1]], '鍵盤已更新', null, data[2]);
+                        // send(['keyboard', data[1]], '鍵盤已更新', null, data[2]);
                         send(['msg', '鍵盤已更新'], null, null, data[2]);
                         break;
                     case 'user-message':
                         msg(data[1], ['user-message']);
                         send(['user-message', data[1]]);
                         break;
+                    case 'start-edit-key':
+                        send(['msg', `${features[peerfeatures[conn.peer]]}正在編輯鍵盤`], `${features[peerfeatures[conn.peer]]}正在編輯鍵盤`, null, conn.peer);
+                        break;
+                    case 'end-edit-key':
+                        send(['msg', `${features[peerfeatures[conn.peer]]}完成鍵盤編輯`], `${features[peerfeatures[conn.peer]]}完成鍵盤編輯`, null, conn.peer);
+                        break;
                     case 'edit-key':
-                        // msg(data[1], ['user-message']);
-                        // send(['user-message', data[1]]);
+                        const keys = document.querySelectorAll('.key');
+                        keys.forEach((key, i) => {
+                            if (key.innerText == data[1]) {
+                                key.classList.remove('x', 'tilde', 'check');
+                                if (data[2]) {
+                                    key.classList.add(data[2]);
+                                }
+                                send(['edit-key', i, data[2]], null, null, conn.peer)
+                            }
+                        });
                         break;
                     default:
                         break;
@@ -117,17 +131,17 @@ function receiveData(data, conn = null) {
                     }
 
                     save();
-                    send(['msg', `已檢查，剩餘 ${(3 - tOFCount)} 次`]);
+                    send(['msg', `${features[peerfeatures[conn.peer]]}檢查了一個位置，剩餘 ${(3 - tOFCount)} 次`, `${features[peerfeatures[conn.peer]]}檢查了一個位置，剩餘 ${(3 - tOFCount)} 次`]);
                     send(['guesses', document.querySelector('.guesses').innerHTML]);
                     send(['tOFCount', tOFCount]);
                     send(['keyboard', document.querySelector('.keyboard').innerHTML]);
                 }
-
             }
         } else if (data == 'connecting') {
             conn.send(['msg', '已連接圖書館員']);
             conn.send(['guesses', document.querySelector('.guesses').innerHTML]);
             conn.send(['keyboard', document.querySelector('.keyboard').innerHTML]);
+            conn.send(['header', document.querySelector('header').innerHTML]);
             conn.send(['tOFCount', tOFCount]);
         } else {
             console.log(data)
@@ -147,8 +161,16 @@ function receiveData(data, conn = null) {
             case 'keyboard':
                 document.querySelector('.keyboard').innerHTML = data[1];
                 break;
+            case 'edit-key':
+                const keys = document.querySelectorAll('.key');
+                keys[data[1]].classList.remove('x', 'tilde', 'check');
+                keys[data[1]].classList.add(data[2]);
+                break;
             case 'user-message':
                 msg(data[1], ['user-message']);
+                break;
+            case 'header':
+                document.querySelector('header').innerHTML = data[1];
                 break;
             case 'c':
                 document.querySelector('.answer').outerHTML = data[1];
@@ -217,7 +239,7 @@ function submit() {
         codeArea.classList.add('wrong');
     }
 }
-function checkAnswer() {
+function checkAnswer(conn) {
     const guess = document.querySelector('.guess:not(.submited)');
     let checkCount = 0;
     guess.querySelectorAll('.code').forEach((code, i) => {
@@ -317,28 +339,33 @@ document.querySelector('.copy-btn').addEventListener('click', () => {
 
 function sendClientKeyboard() {
     if (!document.getElementById('edit_key').checked) {
-        send(['keyboard', document.querySelector('.keyboard').innerHTML, peer.id]);
+        // send(['keyboard', document.querySelector('.keyboard').innerHTML, peer.id]);
+        send(['end-edit-key'], '完成鍵盤編輯');
         document.querySelector('.guesses').classList.remove('blur')
         document.querySelector('body').classList.remove('blur')
-        msg('完成鍵盤編輯');
     } else {
+        send(['start-edit-key'], '開始鍵盤編輯');
         document.querySelector('.guesses').classList.add('blur')
         document.querySelector('body').classList.add('blur')
-        msg('開始鍵盤編輯');
     }
 }
 
-function showMessageInput() {
+function toggleMessageInput() {
     const messageInputLightbox = document.getElementById('message_input_lightbox');
     messageInputLightbox.classList.toggle('show');
+    document.querySelector('.msgs').classList.toggle('show', messageInputLightbox.classList.contains('show'));
 }
 
-function sendMessage() {
+function sendMessage(e) {
+    e.preventDefault();
     const messageInput = document.getElementById('message_input');
     if (isLieBrarian) {
         msg(messageInput.value, ['user-message']);
     }
     send(['user-message', messageInput.value]);
     messageInput.value = '';
-    document.getElementById('message_input_lightbox').classList.remove('show');
+    // document.getElementById('message_input_lightbox').classList.remove('show');
 }
+document.getElementById('message_form').addEventListener('submit', e => {
+    sendMessage(e);
+});
