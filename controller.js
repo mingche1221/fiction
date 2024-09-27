@@ -1,5 +1,6 @@
 
 document.body.classList.add(isLieBrarian ? 'lie-brarian' : 'players');
+document.body.dataset.identity = isLieBrarian ? 'lie-brarian' : 'players';
 
 document.querySelector('.keyboard').addEventListener('click', e => {
     if (e.target.classList.contains('key')) {
@@ -59,7 +60,7 @@ function receiveData(data, conn = null) {
         if (Array.isArray(data)) {
             if (data.length == 5) {
                 guessCodes = data;
-                send(['msg', `圖書館員收到${features[peerfeatures[conn.peer]]}的猜測`]);
+                send(['msg', `圖書館員收到${features[peerfeatures[conn.peer]]}的猜測`], `收到${features[peerfeatures[conn.peer]]}的猜測`);
                 checkAnswer();
                 send(['guesses', document.querySelector('.guesses').innerHTML]);
             } else {
@@ -70,8 +71,8 @@ function receiveData(data, conn = null) {
                         send(['msg', '鍵盤已更新'], null, null, data[2]);
                         break;
                     case 'user-message':
-                        msg(data[1], ['user-message']);
-                        send(['user-message', data[1]]);
+                        msg(data[1], ['user-message', peerfeatures[conn.peer]]);
+                        send(['user-message', data[1], peerfeatures[conn.peer]]);
                         break;
                     case 'start-edit-key':
                         send(['msg', `${features[peerfeatures[conn.peer]]}正在編輯鍵盤`], `${features[peerfeatures[conn.peer]]}正在編輯鍵盤`, null, conn.peer);
@@ -138,11 +139,12 @@ function receiveData(data, conn = null) {
                 }
             }
         } else if (data == 'connecting') {
-            conn.send(['msg', '已連接圖書館員']);
+            conn.send(['msg', `已連接圖書館員。代號：${features[peerfeatures[conn.peer]]}`]);
             conn.send(['guesses', document.querySelector('.guesses').innerHTML]);
             conn.send(['keyboard', document.querySelector('.keyboard').innerHTML]);
-            conn.send(['header', document.querySelector('header').innerHTML]);
+            conn.send(['header', document.querySelector('header').outerHTML]);
             conn.send(['tOFCount', tOFCount]);
+            conn.send(['identity', peerfeatures[conn.peer]]);
         } else {
             console.log(data)
         }
@@ -167,10 +169,14 @@ function receiveData(data, conn = null) {
                 keys[data[1]].classList.add(data[2]);
                 break;
             case 'user-message':
-                msg(data[1], ['user-message']);
+                const identity = data[2] == document.body.dataset.identity ? 'me' : data[2];
+                msg(data[1], ['user-message', identity]);
                 break;
             case 'header':
-                document.querySelector('header').innerHTML = data[1];
+                document.querySelector('header').outerHTML = data[1];
+                break;
+            case 'identity':
+                document.body.dataset.identity = data[1];
                 break;
             case 'c':
                 document.querySelector('.answer').outerHTML = data[1];
@@ -234,9 +240,11 @@ function submit() {
             });
         } else {
             codeArea.classList.add('wrong');
+            msg('找不到符合的詞');
         }
     } else {
         codeArea.classList.add('wrong');
+        msg('字數不足');
     }
 }
 function checkAnswer(conn) {
@@ -353,16 +361,21 @@ function sendClientKeyboard() {
 function toggleMessageInput() {
     const messageInputLightbox = document.getElementById('message_input_lightbox');
     messageInputLightbox.classList.toggle('show');
+    document.getElementById('message_input').focus();
     document.querySelector('.msgs').classList.toggle('show', messageInputLightbox.classList.contains('show'));
+    document.querySelector('.keyboard').classList.toggle('hide', !messageInputLightbox.classList.contains('show'));
+
 }
 
 function sendMessage(e) {
     e.preventDefault();
     const messageInput = document.getElementById('message_input');
     if (isLieBrarian) {
-        msg(messageInput.value, ['user-message']);
+        msg(messageInput.value, ['user-message', 'me']);
+        send(['user-message', messageInput.value, 'liebrarian']);
+    } else {
+        send(['user-message', messageInput.value]);
     }
-    send(['user-message', messageInput.value]);
     messageInput.value = '';
     // document.getElementById('message_input_lightbox').classList.remove('show');
 }

@@ -58,7 +58,6 @@ function send(data, message = null, callBack = null, ignoreId = null) {
             if (conn.open) {
                 conn.send(data);
             } else {
-                console.log(conn, conn.open)
                 // const newConn = peer.connect(conn.peer);
                 // remotePeers[conn.peer] = newConn;
                 // newConn.on('data', receiveData);
@@ -87,11 +86,9 @@ function addPeer(conn) {
                 peerfeatures[conn.peer] = playerFeature;
             }
             send(['msg', `${features[peerfeatures[conn.peer]]}連入`], `${features[peerfeatures[conn.peer]]}連入`, null, conn.peer);
-            document.querySelector('header > div').innerHTML = '<div class="state liebrarian-state"></div><hr>';
-            Object.values(peerfeatures).forEach(features => {
-                document.querySelector('header > div').innerHTML += `<div class="state ${features}-state"></div>`
-            });
-            send(['header', document.querySelector('header').innerHTML]);
+            document.querySelector('header > div').innerHTML += `<div class="state ${peerfeatures[conn.peer]}-state"></div>`
+            document.querySelector('header').classList.toggle('too-many', Object.keys(remotePeers).length > 5);
+            send(['header', document.querySelector('header').outerHTML]);
         } else {
             remotePeers[conn.peer].close();
             send(['msg', `${features[peerfeatures[conn.peer]]}已重新連線`], `${features[peerfeatures[conn.peer]]}已重新連線`, null, conn.peer);
