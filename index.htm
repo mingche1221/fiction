@@ -73,8 +73,11 @@
         .answer.submited {
             background-color: #90cbec;
             border-bottom: 2px solid #369dde;
-            position: sticky;
-            top: 3rem;
+            position: fixed;
+            bottom: 11rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
         }
         .answer:not(.submited),
         .guess:not(.submited) {
@@ -139,7 +142,7 @@
             text-align: center;
         }
         .fact::after {
-            content: '真';
+            content: '實';
             font-size: 15px;
             color: var(--color-black);
             background-color: white;
@@ -149,8 +152,8 @@
                 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
         }
         .fiction::after {
-            content: '假';
-            font-size: 13px;
+            content: '虛';
+            font-size: 14px;
             color: white;
             background-color: var(--color-black);
             box-shadow:
@@ -282,12 +285,9 @@
             }
         }
         .wmsg {
-            position: fixed;
             display: none;
-            bottom: 12rem;
-            left: 50%;
-            transform: translateX(-50%);
             width: fit-content;
+            margin: 1rem auto;
             text-align: center;
             z-index: 3;
             padding: 0.5rem 1rem;
@@ -703,6 +703,23 @@
         :checked + .edit-key-icon {
             background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%230f65b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z" /><path d="M6 10l0 .01" /><path d="M10 10l0 .01" /><path d="M14 10l0 .01" /><path d="M18 10l0 .01" /><path d="M6 14l0 .01" /><path d="M18 14l0 .01" /><path d="M10 14l4 .01" /></svg>');
         }
+        
+        .hide-answer .words {
+            display: none;
+        }
+        .hide-answer .code {
+            transition: height 0.3s;
+            height: 0;
+            color: transparent;
+        }
+        .finish #message_form,
+        .finish .wmsg,
+        .finish .lie-brarian-panel {
+            display: none;
+        }
+        .finish main {
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
@@ -825,7 +842,7 @@
                     <div class="code"></div>
                 </div>
             </div>
-            <div class="wmsg waiting">等待對手</div>
+            <div class="wmsg waiting">等待圖書館員</div>
             <div class="wmsg lie">
                 設定一個謊言 <button onclick="lie()" style="font-size: 1rem">送出</button>
             </div>

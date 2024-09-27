@@ -179,18 +179,20 @@ function receiveData(data, conn = null) {
                 document.body.dataset.identity = data[1];
                 break;
             case 'c':
-                document.querySelector('.answer').outerHTML = data[1];
-                document.querySelector('.wmsg.waiting').style="display:none";
+                document.querySelector('.answer').innerHTML = data[1];
+                document.querySelector('.answer').classList.add('submited');
+                document.body.classList.add('finish');
                 msg('猜對了！', ['fixed']);
                 alert('猜對了！');
                 peer.destroy();
                 localStorage.clear();
                 break;
             case 'f':
-                document.querySelector('.answer').outerHTML = data[1];
-                document.querySelector('.wmsg.waiting').style="display:none";
-                msg('10 次機會用完了！', ['fixed']);
-                alert('10 次機會用完了！');
+                document.querySelector('.answer').innerHTML = data[1];
+                document.querySelector('.answer').classList.add('submited');
+                document.body.classList.add('finish');
+                msg(`沒有猜中，謎底是：${data[2]}`, ['fixed']);
+                alert(`沒有猜中，謎底是：${data[2]}`);
                 peer.destroy();
                 localStorage.clear();
                 break;
@@ -272,13 +274,13 @@ function checkAnswer(conn) {
 
     if (checkCount == 5) {
         codeArea.classList.add('checked');
-        send(['c', document.querySelector('.answer').outerHTML]);
+        send(['c', document.querySelector('.answer').innerHTML]);
         msg('被猜中了！', ['fixed']);
         localStorage.clear();
     } else if (document.querySelectorAll('.guess.submited').length == 10) {
         codeArea.classList.add('checked');
-        send(['f', document.querySelector('.answer').outerHTML]);
-        msg('10 次機會用完了！', ['fixed']);
+        send(['f', document.querySelector('.answer').innerHTML, answerCodes.join()]);
+        msg('對手沒有猜中！', ['fixed']);
         localStorage.clear();
     }
 }
@@ -382,3 +384,9 @@ function sendMessage(e) {
 document.getElementById('message_form').addEventListener('submit', e => {
     sendMessage(e);
 });
+if (isLieBrarian) {
+    const answerArea = document.querySelector('.answer');
+    answerArea.addEventListener('click', () => {
+        answerArea.classList.toggle('hide-answer');
+    });
+}

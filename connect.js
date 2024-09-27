@@ -104,7 +104,7 @@ function connectLieBrarian(id) {
     conn.on('open', () => {
         if (typeof remotePeers[id] !== 'undefined') remotePeers[id].close();
         conn.on('data', receiveData);
-        conn.on('close', () => msg('圖書館員斷線'));
+        conn.on('close', () => msg('與圖書館員失去連線'));
         conn.on('error', err => msg(`連線異常：${err.type}`));
         remotePeers[id] = conn;
         send('connecting');
