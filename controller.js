@@ -363,8 +363,7 @@ function toggleMessageInput() {
     messageInputLightbox.classList.toggle('show');
     document.getElementById('message_input').focus();
     document.querySelector('.msgs').classList.toggle('show', messageInputLightbox.classList.contains('show'));
-    document.querySelector('.keyboard').classList.toggle('hide', !messageInputLightbox.classList.contains('show'));
-
+    document.querySelector('.keyboard').classList.toggle('hide', messageInputLightbox.classList.contains('show'));
 }
 
 function sendMessage(e) {
