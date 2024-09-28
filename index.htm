@@ -362,13 +362,13 @@
             margin-block: 0.25rem;
             word-break: break-all;
         }
-        .msgs.show .msg {
+        .show-msgs .msgs .msg {
             animation: fade-in 0.3s both, fade-out 0.3s 120s both;
         }
         .msg.fixed {
             animation: none;
         }
-        .msgs.show .msg:not(.user-message) {
+        .show-msgs .msgs .msg:not(.user-message) {
             background-color: #262729;
             color: #949494;
             font-size: 0.9rem;
@@ -376,10 +376,10 @@
             padding: 0.33em 1em;
             font-family: sans-serif;
         }
-        .msgs.show .msg.user-message {
+        .show-msgs .msgs .msg.user-message {
             align-self: flex-start;
         }
-        .msgs.show .msg.user-message.me {
+        .show-msgs .msgs .msg.user-message.me {
             align-self: flex-end;
         }
         @keyframes fade-out {
@@ -417,9 +417,6 @@
             width: 100%;
             height: 100%;
             z-index: 3;
-        }
-        .lightbox:not(.show) {
-            display: none;
         }
         .lightbox-container {
             margin: auto;
@@ -720,6 +717,14 @@
         .finish main {
             pointer-events: none !important;
         }
+        :not(.show-msgs) .message_input_lightbox {
+            display: none;
+        }
+        .show-msgs .keyboard,
+        .show-msgs .guess:not(.submited),
+        .show-msgs .answer {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -919,8 +924,8 @@
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="dict_5_code.js"></script>
 
-<script src="state.js?v=29"></script>
-<script src="connect.js?v=29"></script>
-<script src="controller.js?v=29"></script>
+<script src="state.js?v=30"></script>
+<script src="connect.js?v=30"></script>
+<script src="controller.js?v=30"></script>
 </body>
 </html>
