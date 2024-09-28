@@ -361,12 +361,8 @@ function sendClientKeyboard() {
 }
 
 function toggleMessageInput() {
-    const messageInputLightbox = document.getElementById('message_input_lightbox');
-    messageInputLightbox.classList.toggle('show');
-    document.getElementById('message_input').focus();
-    document.querySelector('.msgs').classList.toggle('show', messageInputLightbox.classList.contains('show'));
-    document.querySelector('.keyboard').classList.toggle('hide', messageInputLightbox.classList.contains('show'));
-    document.querySelector('.guess:not(.submited)').classList.toggle('hide', messageInputLightbox.classList.contains('show'));
+    document.body.classList.toggle('show-msgs');
+    if (document.body.classList.contains('show-msgs')) document.getElementById('message_input').focus();
 }
 
 function sendMessage(e) {
