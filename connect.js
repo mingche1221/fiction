@@ -6,14 +6,6 @@ peer.on('disconnected', () => {
 
 peer.on('error', err => {
     switch (err.type) {
-        case 'unavailable-id':
-            // localStorage.removeItem('peerId');
-            break;
-        case 'network':
-            // msg('網路異常，請重整頁面');
-            // document.querySelector('main').classList.add('disabled');
-            send(['msg', 'network down']);
-            break;
         default:
             msg(`${err.type} / ${err}`);
             break;
@@ -22,6 +14,7 @@ peer.on('error', err => {
 
 peer.on('open', id => {
     msg('已連接到網路');
+    startTimer();
     localStorage.setItem(isLieBrarian ? 'peerId' : location.search.replace('?', ''), id);
 
     if (isLieBrarian) {
@@ -57,6 +50,7 @@ function send(data, message = null, callBack = null, ignoreId = null) {
         if (!ignoreId || conn.peer != ignoreId) {
             if (conn.open) {
                 conn.send(data);
+                if (callBack) callBack(conn);
             } else {
                 // const newConn = peer.connect(conn.peer);
                 // remotePeers[conn.peer] = newConn;
@@ -66,7 +60,6 @@ function send(data, message = null, callBack = null, ignoreId = null) {
                 // });
                 msg(`${features[peerfeatures[conn.peer]]}失去連線`);
             }
-            if (callBack) callBack();
         }
     });
 }

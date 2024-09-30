@@ -39,6 +39,10 @@ if (location.search == '?clear') {
     location.href = './';
 }
 
+if (localStorage.getItem('finished')) {
+    localStorage.clear();
+}
+
 if (!isLieBrarian) {
     localStorage.removeItem('peerId');
     localStorage.removeItem('answerCodes');
@@ -51,6 +55,7 @@ if (!isLieBrarian) {
     localStorage.removeItem('tOFCount');
     localStorage.removeItem('guesses');
     localStorage.removeItem('keyboard');
+    localStorage.removeItem('timer');
 }
 
 var remotePeers = {};
@@ -61,8 +66,12 @@ var results = JSON.parse(localStorage.getItem('results')) || [];
 var liedResults = JSON.parse(localStorage.getItem('liedResults')) || [];
 var tOFCount = localStorage.getItem('tOFCount') || 0;
 
-var lieCode;
+var totalTime = (12 * 60 * 1000);
+var remainingTime = localStorage.getItem('timer') || totalTime; // 10分鐘
+var togetTime = Date.now() + remainingTime * 1;
+var timerInterval;
 
+var lieCode;
 
 if (localStorage.getItem('guesses')) {
     document.querySelector('.guesses').innerHTML = localStorage.getItem('guesses');
@@ -82,6 +91,7 @@ function save() {
     localStorage.setItem('results', JSON.stringify(results));
     localStorage.setItem('liedResults', JSON.stringify(liedResults));
     localStorage.setItem('tOFCount', tOFCount);
+    localStorage.setItem('timer', remainingTime);
     localStorage.setItem('guesses', document.querySelector('.guesses').innerHTML);
     localStorage.setItem('keyboard', document.querySelector('.keyboard').innerHTML);
 }

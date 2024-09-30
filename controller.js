@@ -46,7 +46,7 @@ document.querySelector('.guesses').addEventListener('click', e => {
                 const lastGuess = getLastGuess();
                 if (lastGuess && !lastGuess.classList.contains('fact-or-fiction')) {
                     lastGuess.querySelectorAll('.code').forEach((b, i) => {
-                        if (b.innerText == e.target.innerText) {
+                        if (b == e.target) {
                             send(i, '確認中');
                         }
                     })
@@ -63,6 +63,7 @@ function receiveData(data, conn = null) {
                 send(['msg', `圖書館員收到${features[peerfeatures[conn.peer]]}的猜測`], `收到${features[peerfeatures[conn.peer]]}的猜測`);
                 checkAnswer();
                 send(['guesses', document.querySelector('.guesses').innerHTML]);
+                send(['timer', remainingTime, togetTime]);
             } else {
                 switch (data[0]) {
                     case 'keyboard':
@@ -134,6 +135,7 @@ function receiveData(data, conn = null) {
                     save();
                     send(['msg', `${features[peerfeatures[conn.peer]]}檢查了一個位置，剩餘 ${(3 - tOFCount)} 次`, `${features[peerfeatures[conn.peer]]}檢查了一個位置，剩餘 ${(3 - tOFCount)} 次`]);
                     send(['guesses', document.querySelector('.guesses').innerHTML]);
+                    send(['timer', remainingTime, togetTime]);
                     send(['tOFCount', tOFCount]);
                     send(['keyboard', document.querySelector('.keyboard').innerHTML]);
                 }
@@ -141,6 +143,7 @@ function receiveData(data, conn = null) {
         } else if (data == 'connecting') {
             conn.send(['msg', `已連接圖書館員。代號：${features[peerfeatures[conn.peer]]}`]);
             conn.send(['guesses', document.querySelector('.guesses').innerHTML]);
+            conn.send(['timer', remainingTime, togetTime]);
             conn.send(['keyboard', document.querySelector('.keyboard').innerHTML]);
             conn.send(['header', document.querySelector('header').outerHTML]);
             conn.send(['tOFCount', tOFCount]);
@@ -156,6 +159,10 @@ function receiveData(data, conn = null) {
             case 'guesses':
                 document.querySelector('.guesses').innerHTML = data[1];
                 refresh();
+                break;
+            case 'timer':
+                remainingTime = data[1];
+                togetTime = data[2];
                 break;
             case 'tOFCount':
                 tOFCount = data[1];
@@ -179,22 +186,13 @@ function receiveData(data, conn = null) {
                 document.body.dataset.identity = data[1];
                 break;
             case 'c':
-                document.querySelector('.answer').innerHTML = data[1];
-                document.querySelector('.answer').classList.add('submited');
-                document.body.classList.add('finish');
-                msg('猜對了！', ['fixed']);
-                alert('猜對了！');
-                peer.destroy();
-                localStorage.clear();
-                break;
             case 'f':
                 document.querySelector('.answer').innerHTML = data[1];
                 document.querySelector('.answer').classList.add('submited');
-                document.body.classList.add('finish');
-                msg(`沒有猜中，謎底是：${data[2]}`, ['fixed']);
-                alert(`沒有猜中，謎底是：${data[2]}`);
-                peer.destroy();
-                localStorage.clear();
+                document.body.classList.add('finished');
+                msg(data[0] == 'c' ? '猜對了！' : '沒有猜中！', ['fixed']);
+                localStorage.setItem('finished', 1);
+                clearInterval(timerInterval);
                 break;
             default:
                 alert(data);
@@ -272,16 +270,13 @@ function checkAnswer(conn) {
 
     save();
 
-    if (checkCount == 5) {
+    if (checkCount == 5 || document.querySelectorAll('.guess.submited').length == document.querySelectorAll('.guess').length) {
         codeArea.classList.add('checked');
-        send(['c', document.querySelector('.answer').innerHTML]);
-        msg('被猜中了！', ['fixed']);
-        localStorage.clear();
-    } else if (document.querySelectorAll('.guess.submited').length == 10) {
-        codeArea.classList.add('checked');
-        send(['f', document.querySelector('.answer').innerHTML, answerCodes.join()]);
-        msg('對手沒有猜中！', ['fixed']);
-        localStorage.clear();
+        send([checkCount == 5 ? 'c' : 'f', document.querySelector('.answer').innerHTML]);
+        msg(checkCount == 5 ? '被猜中了！' : '沒有猜中！', ['fixed']);
+        document.body.classList.add('finished');
+        localStorage.setItem('finished', 1);
+        clearInterval(timerInterval);
     }
 }
 function lie() {
@@ -299,10 +294,10 @@ function lie() {
         // send(liedResults);
         send(['msg', '圖書館員已回應猜測']);
         send(['guesses', document.querySelector('.guesses').innerHTML]);
+        send(['timer', remainingTime, togetTime]);
     } else {
         guess.classList.add('wrong');
     }
-
     save();
 }
 
@@ -333,7 +328,7 @@ function getLastCodes() {
 }
 
 function getLastGuess() {
-    const checkedGuess = document.querySelectorAll('.submited.checked');
+    const checkedGuess = document.querySelectorAll('.submited.checked:not(.invalid)');
     return checkedGuess[checkedGuess.length - 1];
 }
 
@@ -382,7 +377,71 @@ document.getElementById('message_form').addEventListener('submit', e => {
 });
 if (isLieBrarian) {
     const answerArea = document.querySelector('.answer');
-    answerArea.addEventListener('click', () => {
-        answerArea.classList.toggle('hide-answer');
+    answerArea.addEventListener('click', e => {
+        if (answerArea.classList.contains('hinted')) {
+            answerArea.classList.toggle('hide-answer');
+        } else if (e.target.classList.contains('code') && e.target.innerText != '') {
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(key => {
+                if (key.innerText == e.target.innerText) {
+                    key.classList.add('definite-tilde');
+                    answerArea.classList.add('hinted');
+                    localStorage.setItem('answer', document.querySelector('.answer').outerHTML);
+                    localStorage.setItem('keyboard', document.querySelector('.keyboard').innerHTML);
+                }
+            });
+        }
     });
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(remainingTime / (1000 * 60));
+    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+    document.querySelector('.timer').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+    if (!timerInterval) timerInterval = setInterval(() => {
+        if (remainingTime > 0) {
+            if (document.querySelector('.guess.submited:not(.checked)') || !document.querySelector('.guess.submited.checked')) {
+                togetTime = remainingTime * 1 + Date.now();
+            } else {
+                remainingTime = togetTime - Date.now();
+            }
+        } else {
+            if (isLieBrarian) {
+                if (!document.querySelector('.answer').classList.contains('round-2')) {
+                    document.querySelector('.answer').classList.add('round-2');
+                    localStorage.setItem('answer', document.querySelector('.answer').outerHTML);
+                    remainingTime = totalTime;
+                    togetTime = Date.now() + remainingTime * 1;
+                    const guesses = document.querySelectorAll('.guess');
+                    let invalidCounter = 0;
+                    for (let i = 0; i < 5; i++) {
+                        if (!guesses[i].classList.contains('submited')) {
+                            guesses[i].classList.add('submited', 'checked', 'invalid');
+                            invalidCounter++;
+                        }
+                    }
+                    if (invalidCounter) {
+                        send(['msg', `第一輪時間到，失去 ${invalidCounter} 次機會，重新計時`], `第一輪時間到，失去 ${invalidCounter} 次機會，重新計時`);
+                        send(['guesses', document.querySelector('.guesses').innerHTML]);
+                    } else {
+                        send(['msg', '第一輪時間到，重新計時'], '第一輪時間到，重新計時');
+                    }
+                    send(['timer', remainingTime, togetTime]);
+                    save();
+                } else {
+                    clearInterval(timerInterval);
+                    send(['f', document.querySelector('.answer').innerHTML]);
+                    msg('沒有猜中！', ['fixed']);
+                    document.body.classList.add('finished');
+                    localStorage.setItem('finished', 1);
+                    remainingTime = 0;
+                    send(['timer', remainingTime, togetTime]);
+                }
+            }
+        }
+        updateTimerDisplay();
+    }, 1000);
 }
