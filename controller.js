@@ -99,7 +99,7 @@ function receiveData(data, conn = null) {
             }
         } else if (typeof data == 'number') {
             if (tOFCount < 3) {
-                const checkedGuess = document.querySelectorAll('.submited.checked');
+                const checkedGuess = document.querySelectorAll('.submited.checked:not(.invalid)');
                 const lastGuess = checkedGuess[checkedGuess.length - 1];
                 if (!lastGuess.classList.contains('fact-or-fiction')) {
                     lastGuess.classList.add('fact-or-fiction');
