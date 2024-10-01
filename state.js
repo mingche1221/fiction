@@ -66,8 +66,8 @@ var results = JSON.parse(localStorage.getItem('results')) || [];
 var liedResults = JSON.parse(localStorage.getItem('liedResults')) || [];
 var tOFCount = localStorage.getItem('tOFCount') || 0;
 
-var totalTime = (12 * 60 * 1000);
-var remainingTime = localStorage.getItem('timer') || totalTime; // 10分鐘
+var totalTime = (10 * 60 * 1000); // 10分鐘
+var remainingTime = localStorage.getItem('timer') || totalTime;
 var togetTime = Date.now() + remainingTime * 1;
 var timerInterval;
 

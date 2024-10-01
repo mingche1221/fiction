@@ -80,7 +80,7 @@ function addPeer(conn) {
             }
             send(['msg', `${features[peerfeatures[conn.peer]]}連入`], `${features[peerfeatures[conn.peer]]}連入`, null, conn.peer);
             document.querySelector('header > div').innerHTML += `<div class="state ${peerfeatures[conn.peer]}-state"></div>`
-            document.querySelector('header').classList.toggle('too-many', Object.keys(remotePeers).length > 5);
+            document.querySelector('header').classList.toggle('too-many', Object.keys(remotePeers).length > 4);
             send(['header', document.querySelector('header').outerHTML]);
         } else {
             remotePeers[conn.peer].close();

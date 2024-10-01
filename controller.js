@@ -406,9 +406,11 @@ function startTimer() {
             if (document.querySelector('.guess.submited:not(.checked)') || !document.querySelector('.guess.submited.checked')) {
                 togetTime = remainingTime * 1 + Date.now();
             } else {
-                remainingTime = togetTime - Date.now();
+                remainingTime = togetTime - Date.now() < 0 ? 0 : togetTime - Date.now();
+                localStorage.setItem('timer', remainingTime);
             }
         } else {
+            remainingTime = 0;
             if (isLieBrarian) {
                 if (!document.querySelector('.answer').classList.contains('round-2')) {
                     document.querySelector('.answer').classList.add('round-2');
@@ -443,5 +445,5 @@ function startTimer() {
             }
         }
         updateTimerDisplay();
-    }, 1000);
+    }, 500);
 }
