@@ -30,7 +30,7 @@ document.querySelector('.guesses').addEventListener('click', e => {
     if (e.target.classList.contains('code')) {
         const guessing = document.querySelector('.guess.submited:not(.checked)');
         if (isLieBrarian) {
-            if (guessing) {
+            if (guessing && guessing.contains(e.target)) {
                 guessing.classList.remove('wrong');
                 if (lieCode != e.target) {
                     document.querySelectorAll('.guess.submited:not(.checked) .code').forEach((b, i) => {
@@ -191,7 +191,8 @@ function receiveData(data, conn = null) {
                 document.querySelector('.answer').innerHTML = data[1];
                 document.querySelector('.answer').classList.add('submited');
                 document.body.classList.add('finished');
-                msg(data[0] == 'c' ? '猜對了！' : '沒有猜中！', ['fixed']);
+                msg(data[0] == 'c' ? '猜對了！' : '沒有猜中！');
+                playBeepBoop(data[0] == 'c' ? [330, 440, 550, 660, 660] : [330, 220, 110, 110]);
                 localStorage.setItem('finished', 1);
                 clearInterval(timerInterval);
                 break;
@@ -274,10 +275,13 @@ function checkAnswer(conn) {
     if (checkCount == 5 || document.querySelectorAll('.guess.submited').length == document.querySelectorAll('.guess').length) {
         codeArea.classList.add('checked');
         send([checkCount == 5 ? 'c' : 'f', document.querySelector('.answer').innerHTML]);
-        msg(checkCount == 5 ? '被猜中了！' : '沒有猜中！', ['fixed']);
+        msg(checkCount == 5 ? '被猜中了！' : '沒有猜中！');
+        playBeepBoop(checkCount == 5 ? [330, 220, 110, 110] : [330, 440, 550, 660, 660]);
         document.body.classList.add('finished');
         localStorage.setItem('finished', 1);
         clearInterval(timerInterval);
+    } else {
+        playBeepBoop();
     }
 }
 function lie() {
@@ -437,7 +441,8 @@ function startTimer() {
                 } else {
                     clearInterval(timerInterval);
                     send(['f', document.querySelector('.answer').innerHTML]);
-                    msg('沒有猜中！', ['fixed']);
+                    msg('沒有猜中！');
+                    playBeepBoop([330, 440, 550, 660, 660]);
                     document.body.classList.add('finished');
                     localStorage.setItem('finished', 1);
                     remainingTime = 0;
@@ -446,5 +451,20 @@ function startTimer() {
             }
         }
         updateTimerDisplay();
-    }, 500);
+    }, 100);
+}
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBeepBoop(frequencies = [880]) {
+    frequencies.forEach((freq, i) => {
+        let osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        let gain = audioCtx.createGain();
+        gain.gain.value = 0.1;
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + (0.2 * i));
+        osc.stop(audioCtx.currentTime + (0.2 * (i + 1)));
+    });
 }
