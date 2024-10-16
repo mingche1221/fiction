@@ -27,9 +27,9 @@ document.querySelector('.keyboard').addEventListener('click', e => {
     }
 });
 document.querySelector('.guesses').addEventListener('click', e => {
-    if (e.target.classList.contains('code')) 
+    if (e.target.classList.contains('code')) {
+        const guessing = document.querySelector('.guess.submited:not(.checked)');
         if (isLieBrarian) {
-            const guessing = document.querySelector('.guess.submited:not(.checked)');
             if (guessing) {
                 guessing.classList.remove('wrong');
                 if (lieCode != e.target) {
@@ -42,7 +42,7 @@ document.querySelector('.guesses').addEventListener('click', e => {
                 rotateClass(lieCode);
             }
         } else {
-            if (tOFCount < 3) {
+            if (!guessing && tOFCount < 3) {
                 const lastGuess = getLastGuess();
                 if (lastGuess && !lastGuess.classList.contains('fact-or-fiction')) {
                     lastGuess.querySelectorAll('.code').forEach((b, i) => {
@@ -53,6 +53,7 @@ document.querySelector('.guesses').addEventListener('click', e => {
                 }
             }
         }
+    }
 });
 
 function receiveData(data, conn = null) {
